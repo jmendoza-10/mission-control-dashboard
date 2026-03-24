@@ -1,0 +1,79 @@
+{
+  "lastUpdated": "2026-03-24T12:00:00Z",
+  "tasks": [
+    {
+      "id": "morning-briefing",
+      "name": "8AM Brief",
+      "sprite": "assembler",
+      "status": "idle",
+      "schedule": "Daily 8:00 AM",
+      "cronExpression": "0 8 * * *",
+      "lastRun": "2026-03-24T08:08:00Z",
+      "nextRun": "2026-03-25T08:08:00Z",
+      "lastResult": "success",
+      "inputSources": ["icloud-mail", "icloud-calendar"],
+      "outputTargets": ["report", "activity-feed"],
+      "metrics": {
+        "runsTotal": 12,
+        "runsToday": 1,
+        "successRate": 0.92,
+        "avgDurationSec": 45
+      }
+    },
+    {
+      "id": "daily-eod-summary",
+      "name": "EOD Summary",
+      "sprite": "assembler",
+      "status": "idle",
+      "schedule": "Daily 9:00 PM",
+      "cronExpression": "0 21 * * *",
+      "lastRun": "2026-03-23T21:08:00Z",
+      "nextRun": "2026-03-24T21:08:00Z",
+      "lastResult": "success",
+      "inputSources": ["session-history", "activity-feed"],
+      "outputTargets": ["report", "activity-feed"],
+      "metrics": {
+        "runsTotal": 8,
+        "runsToday": 0,
+        "successRate": 1.0,
+        "avgDurationSec": 60
+      }
+    },
+    {
+      "id": "openclaw-research",
+      "name": "Research Task",
+      "sprite": "lab",
+      "status": "idle",
+      "schedule": "On-demand",
+      "lastRun": "2026-03-24T06:00:00Z",
+      "lastResult": "success",
+      "inputSources": ["web-search"],
+      "outputTargets": ["research-docs", "activity-feed"],
+      "metrics": {
+        "runsTotal": 3,
+        "runsToday": 0,
+        "successRate": 1.0,
+        "avgDurationSec": 300
+      }
+    },
+    {
+      "id": "heartbeat",
+      "name": "Heartbeat",
+      "sprite": "beacon",
+      "status": "idle",
+      "schedule": "Every 30 min",
+      "cronExpression": "*/30 * * * *",
+      "lastRun": "2026-03-24T11:30:00Z",
+      "nextRun": "2026-03-24T12:00:00Z",
+      "lastResult": "success",
+      "inputSources": ["services"],
+      "outputTargets": ["services-json"],
+      "metrics": {
+        "runsTotal": 48,
+        "runsToday": 24,
+        "successRate": 0.98,
+        "avgDurationSec": 5
+      }
+    }
+  ]
+}
