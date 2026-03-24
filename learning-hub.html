@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRINDE Learning Hub</title>
+    <link rel="stylesheet" href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a1a;
+            color: #00ff41;
+            overflow: hidden;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: #12122a;
+            border-bottom: 3px solid #00ff41;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: inset 0 2px 5px rgba(0, 255, 65, 0.3);
+        }
+
+        nav h1 {
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #00ff41;
+            text-shadow: 0 0 10px #00ff41;
+            margin: 0;
+        }
+
+        nav a {
+            color: #ff4444;
+            text-decoration: none;
+            font-size: 12px;
+            transition: all 0.2s;
+            text-shadow: 0 0 5px #ff4444;
+        }
+
+        nav a:hover {
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+        }
+
+        /* Main Content Area */
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Canvas Area */
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            background-color: #0a0a1a;
+            background-image:
+                linear-gradient(0deg, transparent 24%, rgba(0, 255, 65, 0.05) 25%, rgba(0, 255, 65, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 65, 0.05) 75%, rgba(0, 255, 65, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(0, 255, 65, 0.05) 25%, rgba(0, 255, 65, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 65, 0.05) 75%, rgba(0, 255, 65, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            cursor: grab;
+            overflow: hidden;
+        }
+
+        #canvas-container.panning {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            background-color: #0a0a1a;
+        }
+
+        /* Side Panel */
+        #side-panel {
+            width: 0;
+            background-color: #12122a;
+            border-left: 3px solid #00ff41;
+            overflow: hidden;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 2px 0 5px rgba(0, 255, 65, 0.3);
+        }
+
+        #side-panel.active {
+            width: 280px;
+        }
+
+        #panel-header {
+            padding: 15px;
+            border-bottom: 2px solid #00ff41;
+            font-size: 11px;
+            color: #00ff41;
+        }
+
+        #panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .reflection-section {
+            margin-bottom: 20px;
+        }
+
+        .reflection-question {
+            font-size: 10px;
+            color: #4488ff;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .reflection-input {
+            width: 100%;
+            background-color: #0a0a1a;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* Toolbar */
+        #toolbar {
+            background-color: #12122a;
+            border-top: 3px solid #00ff41;
+            padding: 12px 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: inset 0 -2px 5px rgba(0, 255, 65, 0.3);
+        }
+
+        .toolbar-button {
+            background-color: #0a0a1a;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #00ff41;
+            position: relative;
+            top: 0;
+        }
+
+        .toolbar-button:hover {
+            background-color: #1a1a2a;
+            text-shadow: 0 0 10px #00ff41;
+            top: 2px;
+            box-shadow: 0 2px 0 #00ff41;
+        }
+
+        .toolbar-button:active {
+            top: 4px;
+            box-shadow: 0 0px 0 #00ff41;
+        }
+
+        .toolbar-button.accent-red {
+            color: #ff4444;
+            border-color: #ff4444;
+            box-shadow: 0 4px 0 #ff4444;
+        }
+
+        .toolbar-button.accent-red:hover {
+            text-shadow: 0 0 10px #ff4444;
+        }
+
+        .toolbar-divider {
+            width: 2px;
+            height: 30px;
+            background-color: #00ff41;
+            margin: 0 5px;
+        }
+
+        /* Dropdown/Select */
+        select {
+            background-color: #0a0a1a;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        /* Legend */
+        #legend {
+            font-size: 9px;
+            color: #00ff41;
+            margin-left: auto;
+            padding: 0 10px;
+            border-left: 2px solid #00ff41;
+        }
+
+        .legend-item {
+            display: inline-block;
+            margin-left: 15px;
+        }
+
+        .legend-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 4px;
+            vertical-align: middle;
+            border: 1px solid #00ff41;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background-color: #12122a;
+            border: 2px solid #00ff41;
+            border-radius: 0;
+            z-index: 10000;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .context-menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 10px;
+            color: #00ff41;
+            border-bottom: 1px solid #00ff41;
+            transition: all 0.2s;
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-menu-item:hover {
+            background-color: #1a1a3a;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #12122a;
+            border: 3px solid #00ff41;
+            padding: 20px;
+            border-radius: 0;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .modal-content h2 {
+            font-size: 12px;
+            color: #00ff41;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            background-color: #0a0a1a;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-button {
+            background-color: #0a0a1a;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #00ff41;
+            position: relative;
+            top: 0;
+            transition: all 0.2s;
+        }
+
+        .modal-button:hover {
+            top: 2px;
+            box-shadow: 0 2px 0 #00ff41;
+        }
+
+        .modal-button:active {
+            top: 4px;
+            box-shadow: 0 0px 0 #00ff41;
+        }
+
+        .modal-button.cancel {
+            color: #ff4444;
+            border-color: #ff4444;
+            box-shadow: 0 4px 0 #ff4444;
+        }
+
+        .modal-button.cancel:hover {
+            top: 2px;
+            box-shadow: 0 2px 0 #ff4444;
+        }
+
+        /* Daily Notes Tab */
+        #daily-notes-container {
+            width: 0;
+            background-color: #12122a;
+            border-left: 3px solid #8844cc;
+            overflow: hidden;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 2px 0 5px rgba(136, 68, 204, 0.3);
+        }
+
+        #daily-notes-container.active {
+            width: 280px;
+        }
+
+        #notes-header {
+            padding: 15px;
+            border-bottom: 2px solid #8844cc;
+            font-size: 11px;
+            color: #8844cc;
+        }
+
+        #notes-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .note-section {
+            margin-bottom: 20px;
+        }
+
+        .note-label {
+            font-size: 10px;
+            color: #8844cc;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .note-input {
+            width: 100%;
+            background-color: #0a0a1a;
+            color: #8844cc;
+            border: 2px solid #8844cc;
+            padding: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        .date-navigation {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            font-size: 9px;
+        }
+
+        .date-nav-button {
+            flex: 1;
+            background-color: #0a0a1a;
+            color: #8844cc;
+            border: 1px solid #8844cc;
+            padding: 5px;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-nav-button:hover {
+            background-color: #1a1a3a;
+        }
+
+        .current-date {
+            text-align: center;
+            font-size: 9px;
+            color: #8844cc;
+            margin-bottom: 10px;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            border: 1px solid #00ff41;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4488ff;
+        }
+
+        /* Emphasis levels */
+        .node-emphasis-1 { font-size: 10px; }
+        .node-emphasis-2 { font-size: 12px; font-weight: bold; }
+        .node-emphasis-3 { font-size: 14px; font-weight: bold; text-shadow: 0 0 10px currentColor; }
+
+        /* Group colors */
+        .group-g { fill: rgba(0, 255, 65, 0.1); stroke: #00ff41; }
+        .group-r { fill: rgba(255, 68, 68, 0.1); stroke: #ff4444; }
+        .group-i { fill: rgba(68, 136, 255, 0.1); stroke: #4488ff; }
+        .group-n { fill: rgba(245, 166, 35, 0.1); stroke: #f5a623; }
+        .group-d { fill: rgba(136, 68, 204, 0.1); stroke: #8844cc; }
+        .group-e { fill: rgba(0, 255, 150, 0.1); stroke: #00ff96; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <nav>
+            <a href="mission-control.html">← MISSION CONTROL</a>
+            <h1>GRINDE LEARNING HUB</h1>
+            <div style="width: 200px;"></div>
+        </nav>
+
+        <div id="main">
+            <div id="canvas-container">
+                <canvas id="mindMapCanvas"></canvas>
+            </div>
+
+            <!-- Reflection Panel -->
+            <div id="side-panel">
+                <div id="panel-header">REFLECTION PANEL</div>
+                <div id="panel-content">
+                    <div class="reflection-section">
+                        <div class="reflection-question">Why does this matter?</div>
+                        <textarea id="reflection-why" class="reflection-input" placeholder="Your thoughts..."></textarea>
+                    </div>
+                    <div class="reflection-section">
+                        <div class="reflection-question">How does this connect?</div>
+                        <textarea id="reflection-connect" class="reflection-input" placeholder="Related concepts..."></textarea>
+                    </div>
+                    <div class="reflection-section">
+                        <div class="reflection-question">What if this wasn't true?</div>
+                        <textarea id="reflection-if" class="reflection-input" placeholder="Alternative scenarios..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Notes Panel -->
+            <div id="daily-notes-container">
+                <div id="notes-header">DAILY NOTES</div>
+                <div id="notes-content">
+                    <div class="date-navigation">
+                        <button class="date-nav-button" id="prev-date">←</button>
+                        <button class="date-nav-button" id="next-date">→</button>
+                    </div>
+                    <div class="current-date" id="current-date-display"></div>
+
+                    <div class="note-section">
+                        <div class="note-label">Today's Focus</div>
+                        <textarea id="note-focus" class="note-input" placeholder="Main learning goals..."></textarea>
+                    </div>
+                    <div class="note-section">
+                        <div class="note-label">Key Encodings</div>
+                        <textarea id="note-encodings" class="note-input" placeholder="Important concepts..."></textarea>
+                    </div>
+                    <div class="note-section">
+                        <div class="note-label">Connections</div>
+                        <textarea id="note-connections" class="note-input" placeholder="Links between ideas..."></textarea>
+                    </div>
+                    <div class="note-section">
+                        <div class="note-label">Reflection</div>
+                        <textarea id="note-reflection" class="note-input" placeholder="Deeper insights..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toolbar">
+            <button class="toolbar-button" id="btn-new-map">NEW MAP</button>
+            <button class="toolbar-button" id="btn-save">SAVE</button>
+            <button class="toolbar-button" id="btn-load">LOAD</button>
+            <select id="map-select">
+                <option value="">-- SELECT MAP --</option>
+            </select>
+            <button class="toolbar-button" id="btn-export">EXPORT</button>
+            <button class="toolbar-button" id="btn-import">IMPORT</button>
+
+            <div class="toolbar-divider"></div>
+
+            <button class="toolbar-button" id="btn-zoom-in">ZOOM +</button>
+            <button class="toolbar-button" id="btn-zoom-out">ZOOM -</button>
+            <button class="toolbar-button" id="btn-fit">FIT VIEW</button>
+            <button class="toolbar-button" id="btn-toggle-grid">GRID</button>
+
+            <div class="toolbar-divider"></div>
+
+            <button class="toolbar-button" id="btn-undo">UNDO</button>
+            <button class="toolbar-button" id="btn-redo">REDO</button>
+            <button class="toolbar-button" id="btn-reflection">REFLECT (R)</button>
+            <button class="toolbar-button" id="btn-notes">NOTES</button>
+
+            <div id="legend">
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #00ff41;"></span> GROUPED
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #ff4444;"></span> REFLECTIVE
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #4488ff;"></span> INTERCONNECTED
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #f5a623;"></span> NON-VERBAL
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #8844cc;"></span> DIRECTIONAL
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #00ff96;"></span> EMPHASIZED
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <h2>SAVE MAP</h2>
+            <input type="text" id="save-name" placeholder="Map name...">
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="save-cancel">CANCEL</button>
+                <button class="modal-button" id="save-confirm">SAVE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <h2>IMPORT MAP</h2>
+            <input type="file" id="import-file" accept=".json">
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="import-cancel">CANCEL</button>
+                <button class="modal-button" id="import-confirm">IMPORT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="connectionLabelModal" class="modal">
+        <div class="modal-content">
+            <h2>CONNECTION LABEL</h2>
+            <input type="text" id="connection-label-input" placeholder="Optional label...">
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="label-cancel">CANCEL</button>
+                <button class="modal-button" id="label-confirm">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== STATE & CONFIGURATION ====================
+        const GRINDE_CATEGORIES = ['G', 'R', 'I', 'N', 'D', 'E'];
+        const CATEGORY_COLORS = {
+            'G': '#00ff41',
+            'R': '#ff4444',
+            'I': '#4488ff',
+            'N': '#f5a623',
+            'D': '#8844cc',
+            'E': '#00ff96'
+        };
+
+        let canvas = document.getElementById('mindMapCanvas');
+        let ctx = canvas.getContext('2d');
+        let rect = canvas.getBoundingClientRect();
+
+        let state = {
+            nodes: [],
+            connections: [],
+            groups: [],
+            selectedNodes: [],
+            selectedConnection: null,
+            zoom: 1,
+            panX: 0,
+            panY: 0,
+            mode: 'select', // select, connect, pan
+            connectFrom: null,
+            showGrid: true,
+            history: [],
+            historyIndex: -1
+        };
+
+        const GRID_SIZE = 50;
+        const NODE_WIDTH = 120;
+        const NODE_HEIGHT = 50;
+        const MIN_ZOOM = 0.5;
+        const MAX_ZOOM = 3;
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            setupCanvasEvents();
+            setupToolbarEvents();
+            setupModalEvents();
+            setupKeyboardEvents();
+            setupPanelEvents();
+            setupDailyNotesEvents();
+
+            loadAllMaps();
+            createNewMap();
+            autoSave();
+            updateDailyNotesDisplay();
+
+            draw();
+        }
+
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+
+        // ==================== CANVAS DRAWING ====================
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#0a0a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid
+            if (state.showGrid) {
+                drawGrid();
+            }
+
+            // Apply transformations
+            ctx.save();
+            ctx.translate(state.panX, state.panY);
+            ctx.scale(state.zoom, state.zoom);
+
+            // Draw groups
+            state.groups.forEach(group => drawGroup(group));
+
+            // Draw connections
+            state.connections.forEach(conn => drawConnection(conn));
+
+            // Draw nodes
+            state.nodes.forEach(node => drawNode(node));
+
+            ctx.restore();
+
+            // Draw UI overlay
+            drawUI();
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(0, 255, 65, 0.05)';
+            ctx.lineWidth = 1;
+
+            const startX = Math.floor((0 - state.panX) / (GRID_SIZE * state.zoom)) * GRID_SIZE;
+            const startY = Math.floor((0 - state.panY) / (GRID_SIZE * state.zoom)) * GRID_SIZE;
+            const endX = Math.ceil((canvas.width - state.panX) / (GRID_SIZE * state.zoom)) * GRID_SIZE;
+            const endY = Math.ceil((canvas.height - state.panY) / (GRID_SIZE * state.zoom)) * GRID_SIZE;
+
+            for (let x = startX; x < endX; x += GRID_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(x, startY);
+                ctx.lineTo(x, endY);
+                ctx.stroke();
+            }
+
+            for (let y = startY; y < endY; y += GRID_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(startX, y);
+                ctx.lineTo(endX, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawGroup(group) {
+            const color = CATEGORY_COLORS[group.category] || '#00ff41';
+
+            ctx.fillStyle = color + '15';
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+
+            ctx.fillRect(group.x, group.y, group.width, group.height);
+            ctx.strokeRect(group.x, group.y, group.width, group.height);
+
+            if (group.label) {
+                ctx.fillStyle = color;
+                ctx.font = 'bold 10px "Press Start 2P"';
+                ctx.fillText(group.label, group.x + 5, group.y + 15);
+            }
+        }
+
+        function drawConnection(conn) {
+            const fromNode = state.nodes.find(n => n.id === conn.from);
+            const toNode = state.nodes.find(n => n.id === conn.to);
+
+            if (!fromNode || !toNode) return;
+
+            const fromX = fromNode.x + NODE_WIDTH / 2;
+            const fromY = fromNode.y + NODE_HEIGHT / 2;
+            const toX = toNode.x + NODE_WIDTH / 2;
+            const toY = toNode.y + NODE_HEIGHT / 2;
+
+            // Draw line
+            ctx.strokeStyle = conn.strength === 'strong' ? '#00ff41' : 'rgba(0, 255, 65, 0.5)';
+            ctx.lineWidth = conn.strength === 'strong' ? 2 : 1;
+
+            if (conn.strength === 'weak') {
+                ctx.setLineDash([5, 5]);
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw arrowhead
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            const arrowSize = 10;
+
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - arrowSize * Math.cos(angle - Math.PI / 6), toY - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - arrowSize * Math.cos(angle + Math.PI / 6), toY - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+
+            // Highlight selected connection
+            if (state.selectedConnection === conn.id) {
+                ctx.strokeStyle = '#f5a623';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.stroke();
+            }
+
+            // Draw label
+            if (conn.label) {
+                const midX = (fromX + toX) / 2;
+                const midY = (fromY + toY) / 2;
+
+                ctx.fillStyle = '#f5a623';
+                ctx.font = 'bold 8px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.fillText(conn.label, midX, midY - 5);
+            }
+        }
+
+        function drawNode(node) {
+            const color = CATEGORY_COLORS[node.category] || '#00ff41';
+
+            // Draw node rectangle
+            if (state.selectedNodes.includes(node.id)) {
+                ctx.fillStyle = color + '40';
+            } else {
+                ctx.fillStyle = '#0a0a1a';
+            }
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.fillRect(node.x, node.y, NODE_WIDTH, NODE_HEIGHT);
+            ctx.strokeRect(node.x, node.y, NODE_WIDTH, NODE_HEIGHT);
+
+            // Draw category badge
+            ctx.fillStyle = color;
+            ctx.fillRect(node.x + NODE_WIDTH - 20, node.y - 15, 20, 15);
+            ctx.fillStyle = '#0a0a1a';
+            ctx.font = 'bold 10px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(node.category, node.x + NODE_WIDTH - 10, node.y - 3);
+
+            // Draw text
+            ctx.fillStyle = color;
+            ctx.textAlign = 'left';
+            ctx.font = getNodeFont(node.emphasis);
+
+            const lines = wrapText(node.text, NODE_WIDTH - 10);
+            const lineHeight = 10;
+            const startY = node.y + (NODE_HEIGHT - lines.length * lineHeight) / 2 + lineHeight;
+
+            lines.forEach((line, index) => {
+                ctx.fillText(line, node.x + 5, startY + index * lineHeight);
+            });
+
+            // Draw emphasis indicator
+            if (node.emphasis > 1) {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = node.emphasis;
+                ctx.strokeRect(node.x - 2, node.y - 2, NODE_WIDTH + 4, NODE_HEIGHT + 4);
+            }
+
+            // Draw connection ports
+            drawPort(node.x + NODE_WIDTH / 2, node.y, color, 'input');
+            drawPort(node.x + NODE_WIDTH / 2, node.y + NODE_HEIGHT, color, 'output');
+        }
+
+        function drawPort(x, y, color, type) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x - 5, y - 5, 10, 10);
+            ctx.strokeStyle = '#0a0a1a';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - 5, y - 5, 10, 10);
+        }
+
+        function drawUI() {
+            if (state.mode === 'connect' && state.connectFrom) {
+                const node = state.nodes.find(n => n.id === state.connectFrom);
+                if (node) {
+                    ctx.strokeStyle = '#f5a623';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(state.panX + state.zoom * (node.x + NODE_WIDTH / 2),
+                              state.panY + state.zoom * (node.y + NODE_HEIGHT / 2));
+                    ctx.lineTo(mouseX, mouseY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+        }
+
+        function getNodeFont(emphasis) {
+            const baseFont = '"Press Start 2P"';
+            switch(emphasis) {
+                case 1: return '8px ' + baseFont;
+                case 2: return 'bold 10px ' + baseFont;
+                case 3: return 'bold 12px ' + baseFont;
+                default: return '8px ' + baseFont;
+            }
+        }
+
+        function wrapText(text, maxWidth) {
+            if (!text) return [];
+
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+
+            for (let word of words) {
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                ctx.font = '8px "Press Start 2P"';
+
+                if (ctx.measureText(testLine).width > maxWidth - 10) {
+                    if (currentLine) lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+
+            if (currentLine) lines.push(currentLine);
+            return lines.slice(0, 3);
+        }
+
+        // ==================== CANVAS EVENTS ====================
+        let mouseX = 0;
+        let mouseY = 0;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let draggedNode = null;
+        let lastPanX = 0;
+        let lastPanY = 0;
+
+        function setupCanvasEvents() {
+            canvas.addEventListener('mousedown', onCanvasMouseDown);
+            canvas.addEventListener('mousemove', onCanvasMouseMove);
+            canvas.addEventListener('mouseup', onCanvasMouseUp);
+            canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
+            canvas.addEventListener('dblclick', onCanvasDoubleClick);
+            canvas.addEventListener('contextmenu', onCanvasRightClick);
+        }
+
+        function onCanvasMouseDown(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            const worldCoords = screenToWorld(e.clientX, e.clientY);
+            const clickedNode = getNodeAt(worldCoords.x, worldCoords.y);
+
+            if (e.button === 0) { // Left click
+                if (state.mode === 'connect') {
+                    if (clickedNode && clickedNode.id !== state.connectFrom) {
+                        const conn = {
+                            id: 'conn_' + Date.now(),
+                            from: state.connectFrom,
+                            to: clickedNode.id,
+                            label: '',
+                            strength: 'strong'
+                        };
+                        state.connections.push(conn);
+                        saveHistory();
+                        state.mode = 'select';
+                        state.connectFrom = null;
+                    } else if (!clickedNode) {
+                        state.mode = 'select';
+                        state.connectFrom = null;
+                    }
+                } else if (clickedNode) {
+                    if (e.ctrlKey || e.metaKey) {
+                        if (state.selectedNodes.includes(clickedNode.id)) {
+                            state.selectedNodes = state.selectedNodes.filter(id => id !== clickedNode.id);
+                        } else {
+                            state.selectedNodes.push(clickedNode.id);
+                        }
+                    } else if (!state.selectedNodes.includes(clickedNode.id)) {
+                        state.selectedNodes = [clickedNode.id];
+                    }
+
+                    draggedNode = clickedNode;
+                    isDragging = true;
+                    dragStart = { x: e.clientX, y: e.clientY };
+                    updateReflectionPanel();
+                } else {
+                    state.selectedNodes = [];
+                    state.mode = 'pan';
+                    isDragging = true;
+                    dragStart = { x: e.clientX, y: e.clientY };
+                    lastPanX = state.panX;
+                    lastPanY = state.panY;
+                }
+            } else if (e.button === 1) { // Middle click
+                state.mode = 'pan';
+                isDragging = true;
+                dragStart = { x: e.clientX, y: e.clientY };
+                lastPanX = state.panX;
+                lastPanY = state.panY;
+            }
+
+            draw();
+        }
+
+        function onCanvasMouseMove(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            if (isDragging) {
+                if (state.mode === 'pan') {
+                    const dx = e.clientX - dragStart.x;
+                    const dy = e.clientY - dragStart.y;
+                    state.panX = lastPanX + dx;
+                    state.panY = lastPanY + dy;
+                    canvas.style.cursor = 'grabbing';
+                } else if (draggedNode) {
+                    const dx = (e.clientX - dragStart.x) / state.zoom;
+                    const dy = (e.clientY - dragStart.y) / state.zoom;
+
+                    state.selectedNodes.forEach(nodeId => {
+                        const node = state.nodes.find(n => n.id === nodeId);
+                        if (node) {
+                            node.x += dx;
+                            node.y += dy;
+                        }
+                    });
+
+                    dragStart = { x: e.clientX, y: e.clientY };
+                }
+            } else {
+                const worldCoords = screenToWorld(e.clientX, e.clientY);
+                const node = getNodeAt(worldCoords.x, worldCoords.y);
+                canvas.style.cursor = node ? 'pointer' : 'grab';
+            }
+
+            draw();
+        }
+
+        function onCanvasMouseUp(e) {
+            if (isDragging && state.mode !== 'pan') {
+                saveHistory();
+            }
+
+            isDragging = false;
+            draggedNode = null;
+            canvas.style.cursor = 'grab';
+            draw();
+        }
+
+        function onCanvasWheel(e) {
+            e.preventDefault();
+
+            const worldCoords = screenToWorld(e.clientX, e.clientY);
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, state.zoom * zoomFactor));
+
+            state.panX = e.clientX - (e.clientX - state.panX) * (newZoom / state.zoom);
+            state.panY = e.clientY - (e.clientY - state.panY) * (newZoom / state.zoom);
+            state.zoom = newZoom;
+
+            draw();
+        }
+
+        function onCanvasDoubleClick(e) {
+            const worldCoords = screenToWorld(e.clientX, e.clientY);
+            const clickedNode = getNodeAt(worldCoords.x, worldCoords.y);
+
+            if (!clickedNode) {
+                createNode(worldCoords.x, worldCoords.y);
+            } else {
+                startEditingNode(clickedNode);
+            }
+        }
+
+        function onCanvasRightClick(e) {
+            e.preventDefault();
+
+            const worldCoords = screenToWorld(e.clientX, e.clientY);
+            const clickedNode = getNodeAt(worldCoords.x, worldCoords.y);
+            const clickedConn = getConnectionAt(worldCoords.x, worldCoords.y);
+
+            if (clickedNode) {
+                showNodeContextMenu(e.clientX, e.clientY, clickedNode);
+            } else if (clickedConn) {
+                showConnectionContextMenu(e.clientX, e.clientY, clickedConn);
+            }
+        }
+
+        // ==================== COORDINATE CONVERSION ====================
+        function screenToWorld(screenX, screenY) {
+            return {
+                x: (screenX - state.panX) / state.zoom,
+                y: (screenY - state.panY) / state.zoom
+            };
+        }
+
+        function worldToScreen(worldX, worldY) {
+            return {
+                x: worldX * state.zoom + state.panX,
+                y: worldY * state.zoom + state.panY
+            };
+        }
+
+        // ==================== NODE OPERATIONS ====================
+        function createNode(x, y, text = 'New Node') {
+            const node = {
+                id: 'node_' + Date.now(),
+                x: x - NODE_WIDTH / 2,
+                y: y - NODE_HEIGHT / 2,
+                text: text,
+                category: 'G',
+                emphasis: 1,
+                color: '#00ff41',
+                reflection: { why: '', connect: '', if: '' }
+            };
+
+            state.nodes.push(node);
+            saveHistory();
+            draw();
+            return node;
+        }
+
+        function deleteNode(nodeId) {
+            state.nodes = state.nodes.filter(n => n.id !== nodeId);
+            state.connections = state.connections.filter(c => c.from !== nodeId && c.to !== nodeId);
+            state.selectedNodes = state.selectedNodes.filter(id => id !== nodeId);
+            saveHistory();
+            draw();
+        }
+
+        function deleteConnection(connId) {
+            state.connections = state.connections.filter(c => c.id !== connId);
+            state.selectedConnection = null;
+            saveHistory();
+            draw();
+        }
+
+        function startEditingNode(node) {
+            const newText = prompt('Edit node text:', node.text);
+            if (newText !== null) {
+                node.text = newText || 'Node';
+                saveHistory();
+                draw();
+            }
+        }
+
+        function getNodeAt(x, y) {
+            for (let i = state.nodes.length - 1; i >= 0; i--) {
+                const node = state.nodes[i];
+                if (x >= node.x && x <= node.x + NODE_WIDTH &&
+                    y >= node.y && y <= node.y + NODE_HEIGHT) {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        function getConnectionAt(x, y) {
+            for (let i = state.connections.length - 1; i >= 0; i--) {
+                const conn = state.connections[i];
+                const fromNode = state.nodes.find(n => n.id === conn.from);
+                const toNode = state.nodes.find(n => n.id === conn.to);
+
+                if (fromNode && toNode) {
+                    const distance = distanceToLineSegment(
+                        x, y,
+                        fromNode.x + NODE_WIDTH / 2, fromNode.y + NODE_HEIGHT / 2,
+                        toNode.x + NODE_WIDTH / 2, toNode.y + NODE_HEIGHT / 2
+                    );
+
+                    if (distance < 10) {
+                        return conn;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function distanceToLineSegment(x, y, x1, y1, x2, y2) {
+            const A = x - x1;
+            const B = y - y1;
+            const C = x2 - x1;
+            const D = y2 - y1;
+
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+
+            let param = -1;
+            if (lenSq !== 0) param = dot / lenSq;
+
+            let xx, yy;
+
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+
+            const dx = x - xx;
+            const dy = y - yy;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // ==================== CONTEXT MENUS ====================
+        function showNodeContextMenu(x, y, node) {
+            removeContextMenu();
+
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+
+            const items = [
+                { label: 'Edit', action: () => startEditingNode(node) },
+                { label: 'Change Category', action: () => showCategoryPicker(node) },
+                { label: 'Increase Emphasis', action: () => { node.emphasis = Math.min(3, node.emphasis + 1); saveHistory(); draw(); } },
+                { label: 'Decrease Emphasis', action: () => { node.emphasis = Math.max(1, node.emphasis - 1); saveHistory(); draw(); } },
+                { label: 'Add Note', action: () => openNodeReflectionModal(node) },
+                { label: 'Delete', action: () => { deleteNode(node.id); removeContextMenu(); } }
+            ];
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'context-menu-item';
+                div.textContent = item.label;
+                div.addEventListener('click', () => {
+                    item.action();
+                    removeContextMenu();
+                });
+                menu.appendChild(div);
+            });
+
+            document.body.appendChild(menu);
+            document.addEventListener('click', removeContextMenu, { once: true });
+        }
+
+        function showConnectionContextMenu(x, y, conn) {
+            removeContextMenu();
+
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+
+            const items = [
+                { label: 'Add Label', action: () => showConnectionLabelModal(conn) },
+                { label: 'Toggle Strength', action: () => { conn.strength = conn.strength === 'strong' ? 'weak' : 'strong'; draw(); } },
+                { label: 'Delete', action: () => { deleteConnection(conn.id); removeContextMenu(); } }
+            ];
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'context-menu-item';
+                div.textContent = item.label;
+                div.addEventListener('click', () => {
+                    item.action();
+                    removeContextMenu();
+                });
+                menu.appendChild(div);
+            });
+
+            document.body.appendChild(menu);
+            document.addEventListener('click', removeContextMenu, { once: true });
+        }
+
+        function removeContextMenu() {
+            const menu = document.querySelector('.context-menu');
+            if (menu) menu.remove();
+        }
+
+        function showCategoryPicker(node) {
+            const category = prompt('Select category (G/R/I/N/D/E):', node.category);
+            if (category && GRINDE_CATEGORIES.includes(category)) {
+                node.category = category;
+                node.color = CATEGORY_COLORS[category];
+                saveHistory();
+                draw();
+            }
+        }
+
+        // ==================== SELECTION & GROUPING ====================
+        function groupSelectedNodes() {
+            if (state.selectedNodes.length < 2) {
+                alert('Select at least 2 nodes to group');
+                return;
+            }
+
+            const nodes = state.nodes.filter(n => state.selectedNodes.includes(n.id));
+            const minX = Math.min(...nodes.map(n => n.x));
+            const minY = Math.min(...nodes.map(n => n.y));
+            const maxX = Math.max(...nodes.map(n => n.x + NODE_WIDTH));
+            const maxY = Math.max(...nodes.map(n => n.y + NODE_HEIGHT));
+
+            const group = {
+                id: 'group_' + Date.now(),
+                x: minX - 20,
+                y: minY - 30,
+                width: maxX - minX + 40,
+                height: maxY - minY + 50,
+                category: 'G',
+                label: 'Group',
+                nodeIds: state.selectedNodes
+            };
+
+            state.groups.push(group);
+            saveHistory();
+            draw();
+        }
+
+        // ==================== TOOLBAR EVENTS ====================
+        function setupToolbarEvents() {
+            document.getElementById('btn-new-map').addEventListener('click', createNewMap);
+            document.getElementById('btn-save').addEventListener('click', openSaveModal);
+            document.getElementById('btn-load').addEventListener('click', () => {});
+            document.getElementById('btn-export').addEventListener('click', exportMapJSON);
+            document.getElementById('btn-import').addEventListener('click', openImportModal);
+
+            document.getElementById('btn-zoom-in').addEventListener('click', () => {
+                state.zoom = Math.min(MAX_ZOOM, state.zoom * 1.2);
+                draw();
+            });
+            document.getElementById('btn-zoom-out').addEventListener('click', () => {
+                state.zoom = Math.max(MIN_ZOOM, state.zoom / 1.2);
+                draw();
+            });
+            document.getElementById('btn-fit').addEventListener('click', fitToView);
+            document.getElementById('btn-toggle-grid').addEventListener('click', () => {
+                state.showGrid = !state.showGrid;
+                document.getElementById('btn-toggle-grid').style.opacity = state.showGrid ? '1' : '0.5';
+                draw();
+            });
+
+            document.getElementById('btn-undo').addEventListener('click', undo);
+            document.getElementById('btn-redo').addEventListener('click', redo);
+            document.getElementById('btn-reflection').addEventListener('click', toggleReflectionPanel);
+            document.getElementById('btn-notes').addEventListener('click', toggleDailyNotes);
+
+            document.getElementById('map-select').addEventListener('change', (e) => {
+                if (e.target.value) {
+                    loadMap(e.target.value);
+                }
+            });
+        }
+
+        function createNewMap() {
+            state.nodes = [];
+            state.connections = [];
+            state.groups = [];
+            state.selectedNodes = [];
+            state.zoom = 1;
+            state.panX = 0;
+            state.panY = 0;
+            state.history = [];
+            state.historyIndex = -1;
+            draw();
+        }
+
+        function fitToView() {
+            if (state.nodes.length === 0) return;
+
+            const minX = Math.min(...state.nodes.map(n => n.x));
+            const minY = Math.min(...state.nodes.map(n => n.y));
+            const maxX = Math.max(...state.nodes.map(n => n.x + NODE_WIDTH));
+            const maxY = Math.max(...state.nodes.map(n => n.y + NODE_HEIGHT));
+
+            const width = maxX - minX + 40;
+            const height = maxY - minY + 40;
+
+            state.zoom = Math.min(canvas.width / width, canvas.height / height, MAX_ZOOM);
+            state.panX = canvas.width / 2 - (width / 2) * state.zoom - minX * state.zoom;
+            state.panY = canvas.height / 2 - (height / 2) * state.zoom - minY * state.zoom;
+
+            draw();
+        }
+
+        // ==================== SAVE/LOAD SYSTEM ====================
+        function saveHistory() {
+            const snapshot = JSON.stringify({ nodes: state.nodes, connections: state.connections, groups: state.groups });
+            state.history = state.history.slice(0, state.historyIndex + 1);
+            state.history.push(snapshot);
+            state.historyIndex++;
+            if (state.history.length > 50) {
+                state.history.shift();
+                state.historyIndex--;
+            }
+        }
+
+        function undo() {
+            if (state.historyIndex > 0) {
+                state.historyIndex--;
+                restoreSnapshot(state.history[state.historyIndex]);
+            }
+        }
+
+        function redo() {
+            if (state.historyIndex < state.history.length - 1) {
+                state.historyIndex++;
+                restoreSnapshot(state.history[state.historyIndex]);
+            }
+        }
+
+        function restoreSnapshot(snapshot) {
+            const data = JSON.parse(snapshot);
+            state.nodes = data.nodes;
+            state.connections = data.connections;
+            state.groups = data.groups;
+            draw();
+        }
+
+        function openSaveModal() {
+            document.getElementById('save-name').value = 'Untitled Map';
+            document.getElementById('saveModal').classList.add('active');
+            document.getElementById('save-name').focus();
+        }
+
+        function saveMap(name) {
+            const mapData = {
+                name: name,
+                nodes: state.nodes,
+                connections: state.connections,
+                groups: state.groups,
+                timestamp: Date.now()
+            };
+
+            const maps = JSON.parse(localStorage.getItem('grindeMaps') || '{}');
+            maps[name] = mapData;
+            localStorage.setItem('grindeMaps', JSON.stringify(maps));
+
+            loadAllMaps();
+            alert('Map saved: ' + name);
+        }
+
+        function loadAllMaps() {
+            const maps = JSON.parse(localStorage.getItem('grindeMaps') || '{}');
+            const select = document.getElementById('map-select');
+            select.innerHTML = '<option value="">-- SELECT MAP --</option>';
+
+            Object.keys(maps).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+
+        function loadMap(name) {
+            const maps = JSON.parse(localStorage.getItem('grindeMaps') || '{}');
+            const mapData = maps[name];
+
+            if (mapData) {
+                state.nodes = mapData.nodes;
+                state.connections = mapData.connections;
+                state.groups = mapData.groups;
+                state.selectedNodes = [];
+                state.history = [];
+                state.historyIndex = -1;
+                state.zoom = 1;
+                state.panX = 0;
+                state.panY = 0;
+                draw();
+            }
+        }
+
+        function exportMapJSON() {
+            const mapData = {
+                nodes: state.nodes,
+                connections: state.connections,
+                groups: state.groups,
+                exported: new Date().toISOString()
+            };
+
+            const json = JSON.stringify(mapData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mind-map-' + Date.now() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function openImportModal() {
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function importMapJSON(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const mapData = JSON.parse(e.target.result);
+                    state.nodes = mapData.nodes || [];
+                    state.connections = mapData.connections || [];
+                    state.groups = mapData.groups || [];
+                    state.selectedNodes = [];
+                    state.history = [];
+                    state.historyIndex = -1;
+                    draw();
+                    alert('Map imported successfully');
+                } catch (error) {
+                    alert('Error importing map: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function autoSave() {
+            setInterval(() => {
+                if (state.nodes.length > 0) {
+                    saveMap('Auto-save-' + new Date().toLocaleString());
+                }
+            }, 30000);
+        }
+
+        // ==================== REFLECTION PANEL ====================
+        function setupPanelEvents() {
+            document.getElementById('reflection-why').addEventListener('change', updateNodeReflection);
+            document.getElementById('reflection-connect').addEventListener('change', updateNodeReflection);
+            document.getElementById('reflection-if').addEventListener('change', updateNodeReflection);
+        }
+
+        function updateReflectionPanel() {
+            if (state.selectedNodes.length === 1) {
+                const node = state.nodes.find(n => n.id === state.selectedNodes[0]);
+                if (node) {
+                    document.getElementById('reflection-why').value = node.reflection?.why || '';
+                    document.getElementById('reflection-connect').value = node.reflection?.connect || '';
+                    document.getElementById('reflection-if').value = node.reflection?.if || '';
+                }
+            }
+        }
+
+        function updateNodeReflection() {
+            if (state.selectedNodes.length === 1) {
+                const node = state.nodes.find(n => n.id === state.selectedNodes[0]);
+                if (node) {
+                    node.reflection = {
+                        why: document.getElementById('reflection-why').value,
+                        connect: document.getElementById('reflection-connect').value,
+                        if: document.getElementById('reflection-if').value
+                    };
+                }
+            }
+        }
+
+        function toggleReflectionPanel() {
+            const panel = document.getElementById('side-panel');
+            panel.classList.toggle('active');
+            updateReflectionPanel();
+        }
+
+        function openNodeReflectionModal(node) {
+            const note = prompt('Add reflection note:', node.reflection?.note || '');
+            if (note !== null) {
+                node.reflection = node.reflection || {};
+                node.reflection.note = note;
+                saveHistory();
+            }
+        }
+
+        // ==================== DAILY NOTES ====================
+        function setupDailyNotesEvents() {
+            document.getElementById('note-focus').addEventListener('change', saveDailyNotes);
+            document.getElementById('note-encodings').addEventListener('change', saveDailyNotes);
+            document.getElementById('note-connections').addEventListener('change', saveDailyNotes);
+            document.getElementById('note-reflection').addEventListener('change', saveDailyNotes);
+
+            document.getElementById('prev-date').addEventListener('click', () => changeNoteDate(-1));
+            document.getElementById('next-date').addEventListener('click', () => changeNoteDate(1));
+        }
+
+        function updateDailyNotesDisplay() {
+            const today = new Date().toISOString().split('T')[0];
+            updateNotesForDate(today);
+        }
+
+        function updateNotesForDate(dateStr) {
+            const notes = JSON.parse(localStorage.getItem('grindeDailyNotes') || '{}');
+            const dayNotes = notes[dateStr] || { focus: '', encodings: '', connections: '', reflection: '' };
+
+            document.getElementById('note-focus').value = dayNotes.focus || '';
+            document.getElementById('note-encodings').value = dayNotes.encodings || '';
+            document.getElementById('note-connections').value = dayNotes.connections || '';
+            document.getElementById('note-reflection').value = dayNotes.reflection || '';
+
+            document.getElementById('current-date-display').textContent = new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+            document.getElementById('prev-date').dataset.date = dateStr;
+            document.getElementById('next-date').dataset.date = dateStr;
+        }
+
+        function changeNoteDate(offset) {
+            const currentButton = document.getElementById('prev-date');
+            const currentDate = new Date(currentButton.dataset.date || new Date().toISOString().split('T')[0]);
+            currentDate.setDate(currentDate.getDate() + offset);
+            const newDateStr = currentDate.toISOString().split('T')[0];
+            updateNotesForDate(newDateStr);
+        }
+
+        function saveDailyNotes() {
+            const today = new Date().toISOString().split('T')[0];
+            const notes = JSON.parse(localStorage.getItem('grindeDailyNotes') || '{}');
+
+            notes[today] = {
+                focus: document.getElementById('note-focus').value,
+                encodings: document.getElementById('note-encodings').value,
+                connections: document.getElementById('note-connections').value,
+                reflection: document.getElementById('note-reflection').value
+            };
+
+            localStorage.setItem('grindeDailyNotes', JSON.stringify(notes));
+        }
+
+        function toggleDailyNotes() {
+            const container = document.getElementById('daily-notes-container');
+            container.classList.toggle('active');
+            updateDailyNotesDisplay();
+        }
+
+        // ==================== MODAL EVENTS ====================
+        function setupModalEvents() {
+            document.getElementById('save-cancel').addEventListener('click', () => {
+                document.getElementById('saveModal').classList.remove('active');
+            });
+            document.getElementById('save-confirm').addEventListener('click', () => {
+                const name = document.getElementById('save-name').value;
+                if (name) {
+                    saveMap(name);
+                    document.getElementById('saveModal').classList.remove('active');
+                }
+            });
+
+            document.getElementById('import-cancel').addEventListener('click', () => {
+                document.getElementById('importModal').classList.remove('active');
+            });
+            document.getElementById('import-confirm').addEventListener('click', () => {
+                const file = document.getElementById('import-file').files[0];
+                if (file) {
+                    importMapJSON(file);
+                    document.getElementById('importModal').classList.remove('active');
+                }
+            });
+
+            document.getElementById('label-cancel').addEventListener('click', () => {
+                document.getElementById('connectionLabelModal').classList.remove('active');
+            });
+            document.getElementById('label-confirm').addEventListener('click', () => {
+                const label = document.getElementById('connection-label-input').value;
+                if (state.selectedConnection) {
+                    const conn = state.connections.find(c => c.id === state.selectedConnection);
+                    if (conn) {
+                        conn.label = label;
+                        saveHistory();
+                        draw();
+                    }
+                }
+                document.getElementById('connectionLabelModal').classList.remove('active');
+            });
+        }
+
+        function showConnectionLabelModal(conn) {
+            state.selectedConnection = conn.id;
+            document.getElementById('connection-label-input').value = conn.label || '';
+            document.getElementById('connectionLabelModal').classList.add('active');
+            document.getElementById('connection-label-input').focus();
+        }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        function setupKeyboardEvents() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    if (document.activeElement === document.body) {
+                        state.selectedNodes.forEach(nodeId => deleteNode(nodeId));
+                        if (state.selectedConnection) {
+                            deleteConnection(state.selectedConnection);
+                        }
+                    }
+                }
+
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    if (e.shiftKey) redo();
+                    else undo();
+                }
+
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    openSaveModal();
+                }
+
+                if (e.key === 'g' && document.activeElement === document.body) {
+                    groupSelectedNodes();
+                }
+
+                if (e.key === 'r' && document.activeElement === document.body) {
+                    toggleReflectionPanel();
+                }
+
+                if (e.key === 'n' && document.activeElement === document.body) {
+                    toggleDailyNotes();
+                }
+
+                if (e.key === ' ' && document.activeElement === document.body) {
+                    e.preventDefault();
+                    state.mode = state.mode === 'pan' ? 'select' : 'pan';
+                }
+
+                if (e.key === 'c' && (e.ctrlKey || e.metaKey) && state.selectedNodes.length === 1) {
+                    e.preventDefault();
+                    state.mode = 'connect';
+                    state.connectFrom = state.selectedNodes[0];
+                    draw();
+                }
+            });
+        }
+
+        // ==================== INIT ====================
+        init();
+    </script>
+</body>
+</html>
