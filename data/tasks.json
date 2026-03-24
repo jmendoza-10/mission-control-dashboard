@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-24T12:00:00Z",
+  "lastUpdated": "2026-03-24T18:11:52.755051+00:00",
   "tasks": [
     {
       "id": "morning-briefing",
@@ -8,11 +8,23 @@
       "status": "idle",
       "schedule": "Daily 8:00 AM",
       "cronExpression": "0 8 * * *",
-      "lastRun": "2026-03-24T08:08:00Z",
+      "lastRun": "2026-03-24T18:11:50.069Z",
       "nextRun": "2026-03-25T08:08:00Z",
       "lastResult": "success",
-      "inputSources": ["icloud-mail", "icloud-calendar"],
-      "outputTargets": ["report", "activity-feed"],
+      "inputSources": [
+        "icloud-mail",
+        "icloud-calendar"
+      ],
+      "outputTargets": [
+        "report",
+        "activity-feed"
+      ],
+      "lastOutput": {
+        "type": "summary",
+        "title": "Morning Briefing \u2014 Mar 24, 2026",
+        "content": "3 emails processed (1 contract pending signature, 1 equipment order update, 1 newsletter). 2 calendar events today. No scheduling conflicts.",
+        "generatedAt": "2026-03-24T08:08:00Z"
+      },
       "metrics": {
         "runsTotal": 12,
         "runsToday": 1,
@@ -30,12 +42,24 @@
       "lastRun": "2026-03-23T21:08:00Z",
       "nextRun": "2026-03-24T21:08:00Z",
       "lastResult": "success",
-      "inputSources": ["session-history", "activity-feed"],
-      "outputTargets": ["report", "activity-feed"],
+      "inputSources": [
+        "session-history",
+        "activity-feed"
+      ],
+      "outputTargets": [
+        "report",
+        "activity-feed"
+      ],
+      "lastOutput": {
+        "type": "summary",
+        "title": "EOD Summary \u2014 Mar 23, 2026",
+        "content": "4 tasks completed. Research: OpenClaw deep-dive, health integration, mission control dashboard, job search. Memory system initialized. All scheduled tasks healthy.",
+        "generatedAt": "2026-03-23T21:08:00Z"
+      },
       "metrics": {
         "runsTotal": 8,
         "runsToday": 0,
-        "successRate": 1.0,
+        "successRate": 1,
         "avgDurationSec": 60
       }
     },
@@ -47,12 +71,23 @@
       "schedule": "On-demand",
       "lastRun": "2026-03-24T06:00:00Z",
       "lastResult": "success",
-      "inputSources": ["web-search"],
-      "outputTargets": ["research-docs", "activity-feed"],
+      "inputSources": [
+        "web-search"
+      ],
+      "outputTargets": [
+        "research-docs",
+        "activity-feed"
+      ],
+      "lastOutput": {
+        "type": "report",
+        "title": "Mission Control Dashboard Research",
+        "content": "Comprehensive research completed \u2014 Factorio 8-bit UI patterns, NES.css framework, Canvas rendering strategy, 10-phase implementation plan. 85 source links cataloged. 3,500+ words.",
+        "generatedAt": "2026-03-24T06:00:00Z"
+      },
       "metrics": {
         "runsTotal": 3,
         "runsToday": 0,
-        "successRate": 1.0,
+        "successRate": 1,
         "avgDurationSec": 300
       }
     },
@@ -63,11 +98,21 @@
       "status": "idle",
       "schedule": "Every 30 min",
       "cronExpression": "*/30 * * * *",
-      "lastRun": "2026-03-24T11:30:00Z",
+      "lastRun": "2026-03-24T18:11:52.747Z",
       "nextRun": "2026-03-24T12:00:00Z",
       "lastResult": "success",
-      "inputSources": ["services"],
-      "outputTargets": ["services-json"],
+      "inputSources": [
+        "services"
+      ],
+      "outputTargets": [
+        "services-json"
+      ],
+      "lastOutput": {
+        "type": "status",
+        "title": "Heartbeat Check",
+        "content": "4/5 services healthy. iCloud Mail: OK, iCloud Calendar: OK, Web Search: OK, Chrome: OK. Slack: not connected.",
+        "generatedAt": "2026-03-24T11:30:00Z"
+      },
       "metrics": {
         "runsTotal": 48,
         "runsToday": 24,

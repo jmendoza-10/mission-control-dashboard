@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
 
   <style>
-    /* ===== CSS VARIABLES ===== */
+    /* ===== CSS VARIABLES — DEFAULT (GREEN CRT) ===== */
     :root {
       --bg-deep: #0a0a1a;
       --bg-panel: #12122a;
@@ -29,6 +29,42 @@
       --belt-gray: #3a3a5a;
       --scanline-opacity: 0.04;
       --font-main: 'Press Start 2P', monospace;
+      --glow-color: rgba(0, 255, 65, 0.5);
+      --glow-soft: rgba(0, 255, 65, 0.2);
+    }
+
+    /* ===== THEME: AMBER ===== */
+    [data-theme="amber"] {
+      --text-primary: #ffb000;
+      --accent-green: #ffb000;
+      --glow-color: rgba(255, 176, 0, 0.5);
+      --glow-soft: rgba(255, 176, 0, 0.2);
+    }
+
+    /* ===== THEME: FULL COLOR ===== */
+    [data-theme="color"] {
+      --bg-deep: #0f1923;
+      --bg-panel: #162231;
+      --bg-panel-alt: #1c2d40;
+      --border-color: #2a4060;
+      --text-primary: #e0e8f0;
+      --text-secondary: #8899aa;
+      --text-dim: #556677;
+      --accent-green: #44cc66;
+      --glow-color: rgba(68, 204, 102, 0.5);
+      --glow-soft: rgba(68, 204, 102, 0.2);
+      --scanline-opacity: 0.01;
+    }
+
+    /* ===== DAY/NIGHT SHIFT (applied via JS) ===== */
+    [data-daynight="day"] {
+      --bg-deep: #0e0e22;
+    }
+    [data-daynight="evening"] {
+      --bg-deep: #0c0a1e;
+    }
+    [data-daynight="night"] {
+      --bg-deep: #060610;
     }
 
     /* ===== RESET & BASE ===== */
@@ -42,6 +78,7 @@
       line-height: 1.6;
       overflow-x: hidden;
       min-height: 100vh;
+      transition: background 2s ease;
     }
 
     /* ===== CRT OVERLAY ===== */
@@ -60,7 +97,6 @@
       );
     }
 
-    /* CRT flicker */
     @keyframes crt-flicker {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.985; }
@@ -88,7 +124,7 @@
     .header-title {
       font-size: 14px;
       color: var(--accent-green);
-      text-shadow: 0 0 10px rgba(0, 255, 65, 0.5), 0 0 20px rgba(0, 255, 65, 0.2);
+      text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-soft);
       letter-spacing: 2px;
     }
 
@@ -108,26 +144,19 @@
 
     .header-clock {
       color: var(--accent-green);
-      text-shadow: 0 0 6px rgba(0, 255, 65, 0.4);
+      text-shadow: 0 0 6px var(--glow-color);
       font-size: 10px;
     }
 
-    .header-uptime {
-      color: var(--text-secondary);
-    }
+    .header-uptime { color: var(--text-secondary); }
 
-    .health-bar-container {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .health-bar-container { display: flex; align-items: center; gap: 6px; }
 
     .health-bar {
       width: 80px;
       height: 10px;
       background: var(--bg-deep);
       border: 1px solid var(--border-color);
-      position: relative;
       overflow: hidden;
     }
 
@@ -135,12 +164,31 @@
       height: 100%;
       background: var(--accent-green);
       transition: width 0.5s ease;
-      box-shadow: 0 0 4px rgba(0, 255, 65, 0.5);
+      box-shadow: 0 0 4px var(--glow-color);
     }
 
-    .health-label {
+    .health-label { color: var(--accent-green); font-size: 7px; }
+
+    /* Theme / shortcut controls */
+    .header-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .ctrl-btn {
+      font-family: var(--font-main);
+      font-size: 6px;
+      background: var(--bg-deep);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      padding: 3px 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ctrl-btn:hover, .ctrl-btn.active {
       color: var(--accent-green);
-      font-size: 7px;
+      border-color: var(--accent-green);
     }
 
     /* ===== MAIN LAYOUT ===== */
@@ -172,7 +220,7 @@
       margin-bottom: 12px;
       padding-bottom: 6px;
       border-bottom: 1px solid var(--border-color);
-      text-shadow: 0 0 6px rgba(0, 255, 65, 0.3);
+      text-shadow: 0 0 6px var(--glow-soft);
     }
 
     /* ===== SERVICES PANEL (LEFT) ===== */
@@ -196,13 +244,9 @@
 
     .service-dot.active {
       background: var(--accent-green);
-      box-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+      box-shadow: 0 0 6px var(--glow-color);
     }
-
-    .service-dot.pending {
-      background: var(--text-dim);
-    }
-
+    .service-dot.pending { background: var(--text-dim); }
     .service-dot.error {
       background: var(--accent-red);
       box-shadow: 0 0 6px rgba(255, 68, 68, 0.6);
@@ -215,71 +259,40 @@
     }
 
     .service-info { flex: 1; }
+    .service-name { font-size: 8px; color: var(--text-primary); margin-bottom: 2px; }
+    .service-meta { font-size: 6px; color: var(--text-dim); }
+    .service-throughput { font-size: 6px; color: var(--text-secondary); margin-top: 2px; }
 
-    .service-name {
-      font-size: 8px;
-      color: var(--text-primary);
-      margin-bottom: 2px;
-    }
-
-    .service-meta {
-      font-size: 6px;
-      color: var(--text-dim);
-    }
-
-    .service-throughput {
-      font-size: 6px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-
-    /* Resource bars */
     .resources-section {
       margin-top: 16px;
       padding-top: 12px;
       border-top: 1px solid var(--border-color);
     }
 
-    .resource-item {
-      margin-bottom: 10px;
-    }
-
-    .resource-label {
-      font-size: 7px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
+    .resource-item { margin-bottom: 10px; }
+    .resource-label { font-size: 7px; color: var(--text-secondary); margin-bottom: 4px; }
 
     .resource-bar {
       width: 100%;
       height: 8px;
       background: var(--bg-deep);
       border: 1px solid var(--border-color);
-      position: relative;
     }
 
-    .resource-bar-fill {
-      height: 100%;
-      transition: width 0.5s ease;
-    }
-
+    .resource-bar-fill { height: 100%; transition: width 0.5s ease; }
     .resource-bar-fill.green { background: var(--accent-green); }
     .resource-bar-fill.yellow { background: var(--accent-yellow); }
     .resource-bar-fill.red { background: var(--accent-red); }
 
-    .resource-value {
-      font-size: 6px;
-      color: var(--text-dim);
-      text-align: right;
-      margin-top: 2px;
-    }
+    .resource-value { font-size: 6px; color: var(--text-dim); text-align: right; margin-top: 2px; }
 
-    /* ===== FACTORY FLOOR (CENTER) ===== */
+    /* ===== FACTORY FLOOR (CENTER) — CANVAS ===== */
     .factory-panel {
       background: var(--bg-deep);
       display: flex;
       flex-direction: column;
       position: relative;
+      overflow: hidden;
     }
 
     .factory-header {
@@ -289,150 +302,20 @@
       letter-spacing: 1px;
       padding: 12px;
       text-align: center;
-      text-shadow: 0 0 6px rgba(0, 255, 65, 0.3);
+      text-shadow: 0 0 6px var(--glow-soft);
     }
 
-    .factory-floor {
+    .factory-canvas-wrap {
       flex: 1;
       position: relative;
-      padding: 16px;
+      min-height: 360px;
     }
 
-    /* Machine nodes on the factory floor */
-    .machine {
-      position: absolute;
-      width: 100px;
-      height: 80px;
-      background: var(--bg-panel-alt);
-      border: 2px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+    #factoryCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
       cursor: pointer;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .machine:hover {
-      border-color: var(--accent-green);
-      box-shadow: 0 0 12px rgba(0, 255, 65, 0.2);
-    }
-
-    .machine.running {
-      border-color: var(--accent-orange);
-      box-shadow: 0 0 12px rgba(255, 140, 0, 0.3);
-    }
-
-    .machine.error {
-      border-color: var(--accent-red);
-      animation: machine-error 1s infinite;
-    }
-
-    @keyframes machine-error {
-      0%, 100% { box-shadow: 0 0 4px rgba(255, 68, 68, 0.3); }
-      50% { box-shadow: 0 0 16px rgba(255, 68, 68, 0.6); }
-    }
-
-    .machine-gears {
-      font-size: 16px;
-      margin-bottom: 4px;
-      line-height: 1;
-    }
-
-    .machine.idle .machine-gears { color: var(--text-dim); }
-    .machine.running .machine-gears { color: var(--accent-orange); }
-    .machine.error .machine-gears { color: var(--accent-red); }
-
-    @keyframes spin-gears {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .machine.running .machine-gears {
-      animation: spin-gears 2s linear infinite;
-      display: inline-block;
-    }
-
-    .machine-name {
-      font-size: 7px;
-      color: var(--text-primary);
-      text-align: center;
-    }
-
-    .machine-status {
-      font-size: 6px;
-      margin-top: 2px;
-    }
-
-    .machine-status.success { color: var(--accent-green); }
-    .machine-status.idle { color: var(--text-dim); }
-    .machine-status.running { color: var(--accent-orange); }
-    .machine-status.error { color: var(--accent-red); }
-
-    /* Conveyor belts */
-    .belt {
-      position: absolute;
-      height: 12px;
-      background: repeating-linear-gradient(
-        90deg,
-        var(--belt-gray) 0px,
-        var(--belt-gray) 6px,
-        var(--bg-deep) 6px,
-        var(--bg-deep) 12px
-      );
-      background-size: 12px 12px;
-      border: 1px solid rgba(60, 60, 100, 0.5);
-      animation: belt-scroll 0.8s linear infinite;
-    }
-
-    @keyframes belt-scroll {
-      0% { background-position: 0 0; }
-      100% { background-position: 12px 0; }
-    }
-
-    .belt-vertical {
-      width: 12px;
-      height: auto;
-      background: repeating-linear-gradient(
-        180deg,
-        var(--belt-gray) 0px,
-        var(--belt-gray) 6px,
-        var(--bg-deep) 6px,
-        var(--bg-deep) 12px
-      );
-      background-size: 12px 12px;
-      animation: belt-scroll-v 0.8s linear infinite;
-    }
-
-    @keyframes belt-scroll-v {
-      0% { background-position: 0 0; }
-      100% { background-position: 0 12px; }
-    }
-
-    /* Belt items flowing */
-    .belt-item {
-      position: absolute;
-      font-size: 10px;
-      animation: flow-right 3s linear infinite;
-      filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.3));
-    }
-
-    @keyframes flow-right {
-      0% { left: 0; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { left: calc(100% - 16px); opacity: 0; }
-    }
-
-    /* Service source/sink nodes */
-    .service-node {
-      position: absolute;
-      background: var(--bg-panel);
-      border: 1px solid var(--accent-blue);
-      padding: 4px 8px;
-      font-size: 6px;
-      color: var(--accent-blue);
-      text-align: center;
     }
 
     .factory-legend {
@@ -445,11 +328,27 @@
       border-top: 1px solid var(--border-color);
     }
 
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-swatch {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border: 1px solid;
     }
+
+    /* ===== ALT-MODE OVERLAY ===== */
+    .alt-overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .alt-overlay.visible { display: block; }
 
     /* ===== PRODUCTION STATS (RIGHT) ===== */
     .stat-card {
@@ -459,17 +358,8 @@
       border: 1px solid var(--border-color);
     }
 
-    .stat-label {
-      font-size: 7px;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-    }
-
-    .stat-bar-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .stat-label { font-size: 7px; color: var(--text-secondary); margin-bottom: 6px; }
+    .stat-bar-row { display: flex; align-items: center; gap: 8px; }
 
     .stat-bar {
       flex: 1;
@@ -482,18 +372,12 @@
     .stat-bar-fill {
       height: 100%;
       background: var(--accent-green);
-      box-shadow: inset 0 0 4px rgba(0, 255, 65, 0.3);
+      box-shadow: inset 0 0 4px var(--glow-soft);
       transition: width 0.5s ease;
     }
 
-    .stat-value {
-      font-size: 8px;
-      color: var(--accent-green);
-      min-width: 30px;
-      text-align: right;
-    }
+    .stat-value { font-size: 8px; color: var(--accent-green); min-width: 30px; text-align: right; }
 
-    /* Sparkline */
     .sparkline-container {
       margin-top: 8px;
       padding: 8px;
@@ -501,18 +385,8 @@
       border: 1px solid var(--border-color);
     }
 
-    .sparkline-label {
-      font-size: 7px;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-    }
-
-    .sparkline {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 40px;
-    }
+    .sparkline-label { font-size: 7px; color: var(--text-secondary); margin-bottom: 6px; }
+    .sparkline { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
 
     .sparkline-bar {
       flex: 1;
@@ -522,10 +396,7 @@
       opacity: 0.8;
     }
 
-    .sparkline-bar:last-child {
-      opacity: 1;
-      background: var(--accent-yellow);
-    }
+    .sparkline-bar:last-child { opacity: 1; background: var(--accent-yellow); }
 
     .sparkline-meta {
       display: flex;
@@ -535,30 +406,12 @@
       margin-top: 4px;
     }
 
-    /* Cost tracker */
-    .cost-section {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .cost-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 7px;
-      margin-bottom: 4px;
-    }
-
+    .cost-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); }
+    .cost-row { display: flex; justify-content: space-between; font-size: 7px; margin-bottom: 4px; }
     .cost-label { color: var(--text-secondary); }
     .cost-value { color: var(--accent-yellow); }
 
-    /* Task schedule section */
-    .schedule-section {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border-color);
-    }
-
+    .schedule-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); }
     .schedule-item {
       display: flex;
       justify-content: space-between;
@@ -567,27 +420,19 @@
       font-size: 6px;
       border-bottom: 1px solid rgba(42, 42, 90, 0.3);
     }
-
     .schedule-name { color: var(--text-secondary); }
     .schedule-time { color: var(--accent-blue); }
-
-    .schedule-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-    }
-
+    .schedule-dot { width: 6px; height: 6px; border-radius: 50%; }
     .schedule-dot.success { background: var(--accent-green); }
     .schedule-dot.pending { background: var(--text-dim); }
 
-    /* ===== ALERT TICKER (BOTTOM) ===== */
+    /* ===== ALERT TICKER ===== */
     .ticker-bar {
       background: var(--bg-panel);
       border-top: 2px solid var(--accent-green);
       padding: 6px 0;
       overflow: hidden;
       white-space: nowrap;
-      position: relative;
     }
 
     .ticker-content {
@@ -596,29 +441,38 @@
       font-size: 7px;
     }
 
-    .ticker-content:hover {
-      animation-play-state: paused;
-    }
+    .ticker-content:hover { animation-play-state: paused; }
 
     @keyframes ticker-scroll {
       0% { transform: translateX(100vw); }
       100% { transform: translateX(-100%); }
     }
 
-    .ticker-item {
-      display: inline;
-      margin-right: 40px;
-    }
-
+    .ticker-item { display: inline; margin-right: 40px; }
     .ticker-item .tick-icon { margin-right: 4px; }
     .ticker-item.success { color: var(--accent-green); }
     .ticker-item.warning { color: var(--accent-yellow); }
     .ticker-item.error { color: var(--accent-red); }
     .ticker-item.info { color: var(--accent-blue); }
+    .ticker-time { color: var(--text-dim); margin-right: 6px; }
 
-    .ticker-time {
+    /* ===== KEYBOARD HINTS BAR ===== */
+    .hints-bar {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 4px 12px;
+      font-size: 6px;
       color: var(--text-dim);
-      margin-right: 6px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .hint-key {
+      color: var(--accent-green);
+      border: 1px solid var(--border-color);
+      padding: 1px 4px;
+      margin-right: 3px;
     }
 
     /* ===== MACHINE DETAIL POPUP ===== */
@@ -632,9 +486,7 @@
       align-items: center;
     }
 
-    .popup-overlay.visible {
-      display: flex;
-    }
+    .popup-overlay.visible { display: flex; }
 
     .popup {
       background: var(--bg-panel);
@@ -642,7 +494,7 @@
       padding: 16px;
       max-width: 360px;
       width: 90%;
-      box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+      box-shadow: 0 0 30px var(--glow-soft);
     }
 
     .popup-title {
@@ -653,54 +505,135 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .popup-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 7px;
-      margin-bottom: 6px;
-    }
-
+    .popup-row { display: flex; justify-content: space-between; font-size: 7px; margin-bottom: 6px; }
     .popup-key { color: var(--text-secondary); }
     .popup-val { color: var(--text-primary); }
 
-    .popup-close {
+    .popup-buttons {
+      display: flex;
+      gap: 8px;
       margin-top: 12px;
+    }
+
+    .popup-btn {
       font-family: var(--font-main);
       font-size: 7px;
       background: var(--bg-deep);
-      color: var(--accent-green);
-      border: 1px solid var(--accent-green);
       padding: 6px 12px;
       cursor: pointer;
-      width: 100%;
+      flex: 1;
+      text-align: center;
     }
 
-    .popup-close:hover {
-      background: var(--accent-green);
-      color: var(--bg-deep);
+    .popup-close {
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+    }
+
+    .popup-close:hover { background: var(--accent-green); color: var(--bg-deep); }
+
+    .popup-toggle {
+      color: var(--accent-orange);
+      border: 1px solid var(--accent-orange);
+    }
+
+    .popup-toggle:hover { background: var(--accent-orange); color: var(--bg-deep); }
+
+    .popup-toggle.stopping {
+      color: var(--accent-red);
+      border-color: var(--accent-red);
+    }
+
+    .popup-toggle.stopping:hover { background: var(--accent-red); color: var(--bg-deep); }
+
+    .popup-output {
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+    }
+
+    .popup-output:hover { background: var(--accent-blue); color: var(--bg-deep); }
+
+    /* Task progress bar in popup */
+    .popup-progress {
+      margin-top: 10px;
+      padding: 8px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-color);
+      display: none;
+    }
+
+    .popup-progress.visible { display: block; }
+
+    .popup-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 6px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .popup-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .popup-progress-fill {
+      height: 100%;
+      background: var(--accent-orange);
+      transition: width 0.5s linear;
+      box-shadow: 0 0 4px rgba(255, 140, 0, 0.4);
+    }
+
+    /* Output viewer panel */
+    .popup-output-panel {
+      margin-top: 10px;
+      padding: 8px;
+      background: var(--bg-deep);
+      border: 1px solid var(--accent-blue);
+      display: none;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .popup-output-panel.visible { display: block; }
+
+    .popup-output-title {
+      font-size: 7px;
+      color: var(--accent-blue);
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .popup-output-content {
+      font-size: 7px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .popup-output-meta {
+      font-size: 6px;
+      color: var(--text-dim);
+      margin-top: 6px;
+      text-align: right;
     }
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 800px) {
-      .main {
-        grid-template-columns: 1fr;
-      }
+      .main { grid-template-columns: 1fr; }
       .panel { border-right: none; border-bottom: 1px solid var(--border-color); }
-      .factory-floor { min-height: 400px; }
-    }
-
-    /* ===== NES.CSS OVERRIDES ===== */
-    .nes-container {
-      background: var(--bg-panel-alt) !important;
-      color: var(--text-primary) !important;
-    }
-
-    .nes-container.is-dark {
-      background: var(--bg-panel) !important;
+      .factory-canvas-wrap { min-height: 400px; }
+      .header-mission { display: none; }
+      .hints-bar { flex-wrap: wrap; }
     }
   </style>
 </head>
-<body>
+<body data-theme="green" data-daynight="day">
 
   <!-- ===== HEADER ===== -->
   <header class="header">
@@ -709,6 +642,12 @@
       <span class="header-mission">"Build autonomous AI that produces value 24/7"</span>
     </div>
     <div class="header-right">
+      <div class="header-controls">
+        <button class="ctrl-btn" id="btnTheme" title="Cycle theme (T)">THM</button>
+        <button class="ctrl-btn" id="btnSound" title="Toggle sound (M)">SND</button>
+        <button class="ctrl-btn" id="btnAlt" title="Alt-mode details (A)">ALT</button>
+        <a href="learning-hub.html" class="ctrl-btn" style="text-decoration:none;color:inherit;" title="GRINDE Learning Hub">LRN</a>
+      </div>
       <div class="health-bar-container">
         <div class="health-bar">
           <div class="health-bar-fill" id="healthBar" style="width: 80%"></div>
@@ -727,7 +666,6 @@
     <div class="panel" id="servicesPanel">
       <div class="panel-title">Services</div>
       <div id="servicesList"></div>
-
       <div class="resources-section">
         <div class="panel-title">Resources</div>
         <div class="resource-item">
@@ -747,28 +685,27 @@
       </div>
     </div>
 
-    <!-- CENTER: FACTORY FLOOR -->
+    <!-- CENTER: FACTORY FLOOR (CANVAS) -->
     <div class="factory-panel">
       <div class="factory-header">Factory Floor</div>
-      <div class="factory-floor" id="factoryFloor">
-        <!-- Machines and belts are rendered by JS -->
+      <div class="factory-canvas-wrap">
+        <canvas id="factoryCanvas"></canvas>
+        <div class="alt-overlay" id="altOverlay"></div>
       </div>
       <div class="factory-legend">
-        <span class="legend-item"><span style="color:var(--accent-orange)">&#9881;</span> Running</span>
-        <span class="legend-item"><span style="color:var(--text-dim)">&#9675;</span> Idle</span>
-        <span class="legend-item"><span style="color:var(--accent-red)">&#9888;</span> Error</span>
-        <span class="legend-item">&gt;&gt;&gt; Items on belt</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#ff8c00;border-color:#ff8c00"></span> Running</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#555577;border-color:#555577"></span> Idle</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#ff4444;border-color:#ff4444"></span> Error</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#4488ff;border-color:#4488ff"></span> Service</span>
       </div>
     </div>
 
     <!-- RIGHT: PRODUCTION STATS -->
     <div class="panel" id="statsPanel">
       <div class="panel-title">Production Stats</div>
-
       <div id="statCards"></div>
 
-      <!-- Token sparkline -->
-      <div class="sparkline-container" id="sparklineContainer">
+      <div class="sparkline-container">
         <div class="sparkline-label">Token Usage (7d)</div>
         <div class="sparkline" id="sparkline"></div>
         <div class="sparkline-meta">
@@ -777,7 +714,6 @@
         </div>
       </div>
 
-      <!-- Cost -->
       <div class="cost-section">
         <div class="panel-title">Cost Tracker</div>
         <div class="cost-row">
@@ -790,7 +726,6 @@
         </div>
       </div>
 
-      <!-- Schedule -->
       <div class="schedule-section">
         <div class="panel-title">Upcoming</div>
         <div id="scheduleList"></div>
@@ -803,35 +738,738 @@
     <div class="ticker-content" id="ticker"></div>
   </div>
 
+  <!-- ===== KEYBOARD HINTS ===== -->
+  <div class="hints-bar">
+    <span><span class="hint-key">T</span>Theme</span>
+    <span><span class="hint-key">M</span>Mute</span>
+    <span><span class="hint-key">A</span>Alt-mode</span>
+    <span><span class="hint-key">Esc</span>Close</span>
+  </div>
+
   <!-- ===== MACHINE DETAIL POPUP ===== -->
   <div class="popup-overlay" id="popupOverlay">
     <div class="popup">
       <div class="popup-title" id="popupTitle">--</div>
       <div id="popupBody"></div>
-      <button class="popup-close" onclick="closePopup()">[ CLOSE ]</button>
+      <div class="popup-progress" id="popupProgress">
+        <div class="popup-progress-label">
+          <span>Running...</span>
+          <span id="popupProgressTime">0s / --s</span>
+        </div>
+        <div class="popup-progress-bar">
+          <div class="popup-progress-fill" id="popupProgressFill" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="popup-output-panel" id="popupOutputPanel">
+        <div class="popup-output-title" id="popupOutputTitle">--</div>
+        <div class="popup-output-content" id="popupOutputContent">--</div>
+        <div class="popup-output-meta" id="popupOutputMeta"></div>
+      </div>
+      <div class="popup-buttons">
+        <button class="popup-btn popup-toggle" id="popupToggle" onclick="toggleTaskStatus()">[ RUN ]</button>
+        <button class="popup-btn popup-output" id="popupOutputBtn" onclick="toggleOutputPanel()" style="display:none">[ OUTPUT ]</button>
+        <button class="popup-btn popup-close" onclick="closePopup()">[ CLOSE ]</button>
+      </div>
     </div>
   </div>
 
   <!-- ===== JAVASCRIPT ===== -->
   <script>
-    // ===== STATE =====
+    // ============================================================
+    //  STATE
+    // ============================================================
     let tasksData = null;
     let activityData = null;
     let servicesData = null;
     let metricsData = null;
 
-    // ===== CLOCK =====
+    // ============================================================
+    //  THEME SYSTEM
+    // ============================================================
+    const THEMES = ['green', 'amber', 'color'];
+    let themeIndex = 0;
+
+    function cycleTheme() {
+      themeIndex = (themeIndex + 1) % THEMES.length;
+      document.body.setAttribute('data-theme', THEMES[themeIndex]);
+      // Rebuild canvas color cache
+      updateCanvasColors();
+      // Clear sprite cache so they re-render with new palette
+      Object.keys(spriteCache).forEach(k => delete spriteCache[k]);
+      playSound('click');
+    }
+
+    document.getElementById('btnTheme').addEventListener('click', cycleTheme);
+
+    // ============================================================
+    //  DAY/NIGHT CYCLE
+    // ============================================================
+    function updateDayNight() {
+      const h = new Date().getHours();
+      let period;
+      if (h >= 6 && h < 17) period = 'day';
+      else if (h >= 17 && h < 21) period = 'evening';
+      else period = 'night';
+      document.body.setAttribute('data-daynight', period);
+    }
+    updateDayNight();
+    setInterval(updateDayNight, 60000);
+
+    // ============================================================
+    //  SOUND SYSTEM (Web Audio API — 8-bit beeps)
+    // ============================================================
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, duration, type, volume) {
+      if (!soundEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type || 'square';
+        osc.frequency.value = freq;
+        gain.gain.value = volume || 0.08;
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) { /* ignore audio errors */ }
+    }
+
+    const SOUNDS = {
+      click:    () => playTone(800, 0.06, 'square', 0.06),
+      open:     () => { playTone(440, 0.08, 'square', 0.06); setTimeout(() => playTone(660, 0.08, 'square', 0.06), 80); },
+      close:    () => { playTone(660, 0.08, 'square', 0.06); setTimeout(() => playTone(440, 0.08, 'square', 0.06), 80); },
+      success:  () => { playTone(523, 0.1, 'square', 0.05); setTimeout(() => playTone(659, 0.1, 'square', 0.05), 100); setTimeout(() => playTone(784, 0.15, 'square', 0.05), 200); },
+      error:    () => { playTone(200, 0.15, 'sawtooth', 0.06); setTimeout(() => playTone(150, 0.2, 'sawtooth', 0.06), 150); },
+      alert:    () => playTone(1000, 0.1, 'square', 0.04),
+      boot:     () => {
+        [262, 330, 392, 523].forEach((f, i) => {
+          setTimeout(() => playTone(f, 0.12, 'square', 0.05), i * 120);
+        });
+      },
+    };
+
+    function playSound(name) {
+      if (!soundEnabled) return;
+      initAudio();
+      if (SOUNDS[name]) SOUNDS[name]();
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btnSound');
+      btn.textContent = soundEnabled ? 'SND' : 'MUT';
+      btn.classList.toggle('active', !soundEnabled);
+      playSound('click');
+    }
+
+    document.getElementById('btnSound').addEventListener('click', toggleSound);
+
+    // ============================================================
+    //  ALT-MODE (detailed metrics overlay)
+    // ============================================================
+    let altMode = false;
+
+    function toggleAltMode() {
+      altMode = !altMode;
+      document.getElementById('btnAlt').classList.toggle('active', altMode);
+      playSound('click');
+    }
+
+    document.getElementById('btnAlt').addEventListener('click', toggleAltMode);
+
+    // ============================================================
+    //  COLORS — read from CSS vars (updated on theme change)
+    // ============================================================
+    let C = {};
+
+    function updateCanvasColors() {
+      const s = getComputedStyle(document.documentElement);
+      C = {
+        bgDeep:    s.getPropertyValue('--bg-deep').trim(),
+        bgPanel:   s.getPropertyValue('--bg-panel').trim(),
+        bgPanelAlt:s.getPropertyValue('--bg-panel-alt').trim(),
+        border:    s.getPropertyValue('--border-color').trim(),
+        green:     s.getPropertyValue('--accent-green').trim(),
+        red:       s.getPropertyValue('--accent-red').trim(),
+        yellow:    s.getPropertyValue('--accent-yellow').trim(),
+        orange:    s.getPropertyValue('--accent-orange').trim(),
+        blue:      s.getPropertyValue('--accent-blue').trim(),
+        purple:    s.getPropertyValue('--accent-purple').trim(),
+        beltGray:  s.getPropertyValue('--belt-gray').trim(),
+        beltDark:  '#252540',
+        dim:       s.getPropertyValue('--text-dim').trim(),
+        textSec:   s.getPropertyValue('--text-secondary').trim(),
+        white:     s.getPropertyValue('--text-primary').trim(),
+      };
+    }
+    updateCanvasColors();
+
+    // ============================================================
+    //  PIXEL ART SPRITE DEFINITIONS
+    // ============================================================
+    const SPRITE_MACHINE_BODY = [
+      'nnBBBBBBBBBBBBnn',
+      'nBBBBBBBBBBBBBBBn',
+      'BBddddddddddddBB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BdDDDDDDDDDDDDdDB',
+      'BBddddddddddddBB',
+      'nBBBBBBBBBBBBBBBn',
+      'nnBBBBBBBBBBBBnn',
+    ];
+
+    const SPRITE_GEAR_1 = [
+      'n__GG__n',
+      '_GGGGG_n',
+      '_GGGGG_n',
+      'GGG__GGG',
+      'GGG__GGG',
+      '_GGGGG_n',
+      '_GGGGG_n',
+      'n__GG__n',
+    ];
+
+    const SPRITE_GEAR_2 = [
+      'n_GGGG_n',
+      '_GG__GGn',
+      'GGG__GGG',
+      'GG____GG',
+      'GG____GG',
+      'GGG__GGG',
+      '_GG__GGn',
+      'n_GGGG_n',
+    ];
+
+    const SPRITE_EMAIL = [
+      'EEEEEEEE',
+      'EeEEEEeE',
+      'EEeEEeEE',
+      'EEEeeEEE',
+      'EEeEEeEE',
+      'EeEEEEeE',
+      'EEEEEEEE',
+      'EEEEEEEE',
+    ];
+
+    const SPRITE_FILE = [
+      'FFFFFFnn',
+      'FfffffFn',
+      'FffffffF',
+      'FffffffF',
+      'FffffffF',
+      'FffffffF',
+      'FffffffF',
+      'FFFFFFFF',
+    ];
+
+    const SPRITE_RESEARCH = [
+      'nnRRRRnn',
+      'nRrrrrRn',
+      'RrrrrrrR',
+      'nRrrrrRn',
+      'nnRRRRnn',
+      'nnnRRnnn',
+      'nnnnRnnn',
+      'nnnnnRnn',
+    ];
+
+    const SPRITE_REPORT = [
+      'PPPPPPnn',
+      'PpppppPn',
+      'PppppppP',
+      'PpGGGGpP',
+      'PppppppP',
+      'PpGGGGpP',
+      'PppppppP',
+      'PPPPPPPP',
+    ];
+
+    // 8x12 idle character — little worker
+    const SPRITE_WORKER_1 = [
+      'nn_WW_nn',
+      'n_WWWW_n',
+      'n_WeeW_n',
+      'n_WWWW_n',
+      'nnWWWWnn',
+      '_WWWWWW_',
+      'WW_WW_WW',
+      'nn_WW_nn',
+      'nn_WW_nn',
+      'nnWnnWnn',
+      'nWWnnWWn',
+      'nWWnnWWn',
+    ];
+
+    const SPRITE_WORKER_2 = [
+      'nn_WW_nn',
+      'n_WWWW_n',
+      'n_WeeW_n',
+      'n_WWWW_n',
+      'nnWWWWnn',
+      '_WWWWWW_',
+      'WW_WW_WW',
+      'nn_WW_nn',
+      'nn_WW_nn',
+      'nnWWWWnn',
+      'nnW__Wnn',
+      'nnWnnWnn',
+    ];
+
+    const PALETTE = {
+      'n': null, 'B': '#3a3a6a', 'b': '#2a2a5a', 'd': '#4a4a7a', 'D': '#1a1a3e',
+      'G': '#ff8c00', '_': null,
+      'E': '#4488ff', 'e': '#2266cc',
+      'F': '#f5a623', 'f': '#cc8800',
+      'R': '#8844cc', 'r': '#6622aa',
+      'P': '#00ff41', 'p': '#008822',
+      'W': '#c0c0c0',  // worker body
+    };
+
+    // ============================================================
+    //  SPRITE RENDERER
+    // ============================================================
+    const spriteCache = {};
+
+    function renderSprite(spriteDef, paletteOverrides) {
+      const pal = paletteOverrides ? { ...PALETTE, ...paletteOverrides } : PALETTE;
+      const h = spriteDef.length;
+      const w = spriteDef[0].length;
+      const cvs = document.createElement('canvas');
+      cvs.width = w; cvs.height = h;
+      const c = cvs.getContext('2d');
+      const img = c.createImageData(w, h);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const ch = spriteDef[y][x];
+          const color = pal[ch];
+          const idx = (y * w + x) * 4;
+          if (color) {
+            img.data[idx]     = parseInt(color.slice(1, 3), 16);
+            img.data[idx + 1] = parseInt(color.slice(3, 5), 16);
+            img.data[idx + 2] = parseInt(color.slice(5, 7), 16);
+            img.data[idx + 3] = 255;
+          }
+        }
+      }
+      c.putImageData(img, 0, 0);
+      return cvs;
+    }
+
+    function getSprite(name, spriteDef, paletteOverrides) {
+      const key = name + (paletteOverrides ? JSON.stringify(paletteOverrides) : '');
+      if (!spriteCache[key]) spriteCache[key] = renderSprite(spriteDef, paletteOverrides);
+      return spriteCache[key];
+    }
+
+    // ============================================================
+    //  CANVAS SETUP
+    // ============================================================
+    const canvas = document.getElementById('factoryCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const MACHINE_W = 64;
+    const MACHINE_H = 56;
+    const BELT_W = 10;
+
+    let animTime = 0;
+    let gearFrame = 0;
+    let beltOffset = 0;
+    let itemPositions = [];
+    let machineHitBoxes = [];
+    let hoveredMachine = -1;
+    let machinePositions = [];
+
+    // Idle worker state
+    let worker = { x: 0, y: 0, targetX: 0, targetY: 0, frame: 0, timer: 0, moveTimer: 0, visible: true };
+
+    function computeLayout() {
+      const wrap = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = wrap.clientWidth * dpr;
+      canvas.height = wrap.clientHeight * dpr;
+      canvas.style.width = wrap.clientWidth + 'px';
+      canvas.style.height = wrap.clientHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const cw = wrap.clientWidth;
+      const ch = wrap.clientHeight;
+
+      const gapX = Math.min(180, cw * 0.35);
+      const gapY = Math.min(140, ch * 0.32);
+      const startX = (cw - gapX - MACHINE_W) / 2;
+      const startY = (ch - gapY - MACHINE_H) / 2;
+
+      machinePositions = [
+        { x: startX, y: startY },
+        { x: startX + gapX, y: startY },
+        { x: startX, y: startY + gapY },
+        { x: startX + gapX, y: startY + gapY },
+      ];
+
+      // Init worker position
+      if (worker.x === 0 && worker.y === 0) {
+        worker.x = cw / 2;
+        worker.y = ch / 2 + 30;
+        worker.targetX = worker.x;
+        worker.targetY = worker.y;
+      }
+    }
+
+    const BELT_CONFIGS = [
+      { from: 0, to: 1, dir: 'h' },
+      { from: 0, to: 2, dir: 'v' },
+      { from: 1, to: 3, dir: 'v' },
+      { from: 2, to: 3, dir: 'h' },
+    ];
+
+    const ITEM_SPRITES = [
+      { name: 'email', def: SPRITE_EMAIL },
+      { name: 'file', def: SPRITE_FILE },
+      { name: 'research', def: SPRITE_RESEARCH },
+      { name: 'report', def: SPRITE_REPORT },
+    ];
+
+    function initBeltItems() {
+      itemPositions = [];
+      BELT_CONFIGS.forEach((bc, bi) => {
+        for (let i = 0; i < 2; i++) {
+          itemPositions.push({
+            beltIndex: bi,
+            t: (i * 0.5) % 1,
+            spriteIndex: (bi + i) % ITEM_SPRITES.length,
+            speed: 0.15 + Math.random() * 0.1,
+          });
+        }
+      });
+    }
+    initBeltItems();
+
+    // ============================================================
+    //  DRAW FUNCTIONS
+    // ============================================================
+    function drawPixelSprite(sprite, x, y, scale) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height,
+        Math.round(x), Math.round(y), sprite.width * scale, sprite.height * scale);
+    }
+
+    function drawBelt(x1, y1, x2, y2, dir) {
+      ctx.save();
+      if (dir === 'h') {
+        const bw = x2 - x1;
+        const by = y1 - BELT_W / 2;
+        ctx.fillStyle = C.beltGray;
+        ctx.fillRect(x1, by, bw, BELT_W);
+        ctx.fillStyle = C.border;
+        ctx.fillRect(x1, by, bw, 1);
+        ctx.fillRect(x1, by + BELT_W - 1, bw, 1);
+        ctx.fillStyle = C.beltDark;
+        const ns = 12;
+        const off = beltOffset % ns;
+        for (let nx = x1 + off; nx < x2; nx += ns) ctx.fillRect(nx, by + 2, 4, BELT_W - 4);
+      } else {
+        const bh = y2 - y1;
+        const bx = x1 - BELT_W / 2;
+        ctx.fillStyle = C.beltGray;
+        ctx.fillRect(bx, y1, BELT_W, bh);
+        ctx.fillStyle = C.border;
+        ctx.fillRect(bx, y1, 1, bh);
+        ctx.fillRect(bx + BELT_W - 1, y1, 1, bh);
+        ctx.fillStyle = C.beltDark;
+        const ns = 12;
+        const off = beltOffset % ns;
+        for (let ny = y1 + off; ny < y2; ny += ns) ctx.fillRect(bx + 2, ny, BELT_W - 4, 4);
+      }
+      ctx.restore();
+    }
+
+    function drawMachine(task, pos, index) {
+      const x = pos.x, y = pos.y;
+      const isRunning = task.status === 'running';
+      const isError = task.lastResult === 'error';
+      const isHovered = hoveredMachine === index;
+
+      const bodySprite = getSprite('body', SPRITE_MACHINE_BODY);
+      drawPixelSprite(bodySprite, x, y, MACHINE_W / bodySprite.width);
+
+      if (isHovered) {
+        ctx.strokeStyle = C.green;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = C.green;
+        ctx.shadowBlur = 8;
+        ctx.strokeRect(x - 1, y - 1, MACHINE_W + 2, MACHINE_H + 2);
+        ctx.shadowBlur = 0;
+      }
+
+      if (isRunning) {
+        ctx.strokeStyle = C.orange;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = C.orange;
+        ctx.shadowBlur = 6;
+        ctx.strokeRect(x, y, MACHINE_W, MACHINE_H);
+        ctx.shadowBlur = 0;
+      } else if (isError && Math.sin(animTime * 4) > 0) {
+        ctx.strokeStyle = C.red;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = C.red;
+        ctx.shadowBlur = 10;
+        ctx.strokeRect(x, y, MACHINE_W, MACHINE_H);
+        ctx.shadowBlur = 0;
+      }
+
+      const gearDef = isRunning ? (gearFrame === 0 ? SPRITE_GEAR_1 : SPRITE_GEAR_2) : SPRITE_GEAR_1;
+      const gearPal = isError ? { 'G': C.red } : isRunning ? {} : { 'G': C.dim };
+      const gearSprite = getSprite(isRunning ? (gearFrame === 0 ? 'gear1' : 'gear2') : 'gear1idle', gearDef, gearPal);
+      const gs = 2.5;
+      const gx = x + (MACHINE_W - gearSprite.width * gs) / 2;
+      const gy = y + 6;
+      drawPixelSprite(gearSprite, gx, gy, gs);
+
+      if (isRunning) {
+        const g2 = getSprite(gearFrame === 0 ? 'gear2r' : 'gear1r', gearFrame === 0 ? SPRITE_GEAR_2 : SPRITE_GEAR_1);
+        drawPixelSprite(g2, gx + 18, gy + 2, gs * 0.8);
+      }
+
+      // Alt-mode: extra metrics overlay
+      if (altMode && task.metrics) {
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(x, y - 18, MACHINE_W, 16);
+        ctx.fillStyle = C.green;
+        ctx.font = '6px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        const rate = (task.metrics.successRate * 100).toFixed(0);
+        ctx.fillText(`${rate}% / ${task.metrics.runsTotal || 0}r`, x + MACHINE_W / 2, y - 7);
+      }
+
+      ctx.fillStyle = C.white;
+      ctx.font = '7px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.fillText(task.name, x + MACHINE_W / 2, y + MACHINE_H - 14, MACHINE_W - 4);
+
+      const statusText = isRunning ? 'RUNNING' : isError ? 'ERROR' : task.lastResult === 'success' ? 'OK' : 'IDLE';
+      ctx.fillStyle = isRunning ? C.orange : isError ? C.red : task.lastResult === 'success' ? C.green : C.dim;
+      ctx.font = '6px "Press Start 2P"';
+      ctx.fillText(statusText, x + MACHINE_W / 2, y + MACHINE_H - 4, MACHINE_W - 4);
+
+      machineHitBoxes[index] = { x, y, w: MACHINE_W, h: MACHINE_H, taskIndex: index };
+    }
+
+    function drawServiceNode(name, x, y) {
+      const w = 56, h = 16;
+      ctx.fillStyle = C.bgPanel;
+      ctx.strokeStyle = C.blue;
+      ctx.lineWidth = 1;
+      ctx.fillRect(x - w / 2, y - h / 2, w, h);
+      ctx.strokeRect(x - w / 2, y - h / 2, w, h);
+      ctx.fillStyle = C.blue;
+      ctx.font = '6px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.fillText(name, x, y + 3);
+    }
+
+    function drawBeltItems(dt) {
+      if (!tasksData) return;
+      itemPositions.forEach(item => {
+        const bc = BELT_CONFIGS[item.beltIndex];
+        if (!bc || bc.from >= machinePositions.length || bc.to >= machinePositions.length) return;
+        const ft = tasksData.tasks[bc.from];
+        const tt = tasksData.tasks[bc.to];
+        const active = (ft && ft.lastResult === 'success') || (tt && tt.lastResult === 'success');
+        if (active) { item.t += item.speed * dt; if (item.t > 1) item.t -= 1; }
+        const fp = machinePositions[bc.from], tp = machinePositions[bc.to];
+        let ix, iy;
+        if (bc.dir === 'h') {
+          ix = (fp.x + MACHINE_W) + ((tp.x) - (fp.x + MACHINE_W)) * item.t;
+          iy = fp.y + MACHINE_H / 2 - 8;
+        } else {
+          ix = fp.x + MACHINE_W / 2 - 8;
+          iy = (fp.y + MACHINE_H) + ((tp.y) - (fp.y + MACHINE_H)) * item.t;
+        }
+        const spr = ITEM_SPRITES[item.spriteIndex];
+        drawPixelSprite(getSprite('item_' + spr.name, spr.def), ix, iy, 2);
+      });
+    }
+
+    // ============================================================
+    //  IDLE WORKER CHARACTER
+    // ============================================================
+    function updateWorker(dt, cw, ch) {
+      // Check if any task is running
+      const anyRunning = tasksData && tasksData.tasks.some(t => t.status === 'running');
+      worker.visible = !anyRunning; // hide when busy
+
+      if (!worker.visible) return;
+
+      worker.timer += dt;
+      worker.moveTimer += dt;
+
+      // Pick new target every 3-5 seconds
+      if (worker.moveTimer > 3 + Math.random() * 2) {
+        worker.moveTimer = 0;
+        // Wander between machines
+        const padding = 40;
+        worker.targetX = padding + Math.random() * (cw - padding * 2);
+        worker.targetY = padding + Math.random() * (ch - padding * 2);
+      }
+
+      // Move toward target
+      const dx = worker.targetX - worker.x;
+      const dy = worker.targetY - worker.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 2) {
+        const speed = 25;
+        worker.x += (dx / dist) * speed * dt;
+        worker.y += (dy / dist) * speed * dt;
+      }
+
+      // Animate walk
+      worker.frame = Math.floor(worker.timer / 0.3) % 2;
+    }
+
+    function drawWorker() {
+      if (!worker.visible) return;
+      const spriteDef = worker.frame === 0 ? SPRITE_WORKER_1 : SPRITE_WORKER_2;
+      const workerSprite = getSprite('worker' + worker.frame, spriteDef);
+      drawPixelSprite(workerSprite, worker.x - 8, worker.y - 12, 2);
+    }
+
+    // ============================================================
+    //  MAIN RENDER LOOP
+    // ============================================================
+    let lastTime = 0;
+
+    function renderFrame(timestamp) {
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+      lastTime = timestamp;
+      animTime += dt;
+      gearFrame = Math.floor(animTime / 0.4) % 2;
+      beltOffset += dt * 30;
+
+      const wrap = canvas.parentElement;
+      const cw = wrap.clientWidth;
+      const ch = wrap.clientHeight;
+
+      ctx.clearRect(0, 0, cw, ch);
+
+      // Background grid
+      ctx.strokeStyle = 'rgba(42, 42, 90, 0.15)';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx < cw; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, ch); ctx.stroke(); }
+      for (let gy = 0; gy < ch; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(cw, gy); ctx.stroke(); }
+
+      if (!tasksData || machinePositions.length === 0) {
+        ctx.fillStyle = C.dim;
+        ctx.font = '10px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        ctx.fillText('Loading...', cw / 2, ch / 2);
+        requestAnimationFrame(renderFrame);
+        return;
+      }
+
+      const tasks = tasksData.tasks;
+
+      // Service nodes
+      const topY = machinePositions[0].y - 30;
+      const botY = (machinePositions[2] || machinePositions[0]).y + MACHINE_H + 30;
+      drawServiceNode('iCloud', machinePositions[0].x + MACHINE_W / 2, topY);
+      drawServiceNode('Web', machinePositions[1].x + MACHINE_W / 2, topY);
+      drawServiceNode('Reports', (machinePositions[0].x + machinePositions[1].x + MACHINE_W) / 2, botY);
+
+      // Dashed connector lines
+      ctx.strokeStyle = 'rgba(68, 136, 255, 0.25)';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(machinePositions[0].x + MACHINE_W / 2, topY + 8); ctx.lineTo(machinePositions[0].x + MACHINE_W / 2, machinePositions[0].y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(machinePositions[1].x + MACHINE_W / 2, topY + 8); ctx.lineTo(machinePositions[1].x + MACHINE_W / 2, machinePositions[1].y); ctx.stroke();
+      if (machinePositions.length > 2) {
+        const midX = (machinePositions[2].x + machinePositions[3].x + MACHINE_W) / 2;
+        ctx.beginPath(); ctx.moveTo(machinePositions[2].x + MACHINE_W / 2, machinePositions[2].y + MACHINE_H); ctx.lineTo(midX, botY - 8); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(machinePositions[3].x + MACHINE_W / 2, machinePositions[3].y + MACHINE_H); ctx.lineTo(midX, botY - 8); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Belts
+      BELT_CONFIGS.forEach(bc => {
+        if (bc.from >= tasks.length || bc.to >= tasks.length) return;
+        if (bc.from >= machinePositions.length || bc.to >= machinePositions.length) return;
+        const fp = machinePositions[bc.from], tp = machinePositions[bc.to];
+        if (bc.dir === 'h') drawBelt(fp.x + MACHINE_W, fp.y + MACHINE_H / 2, tp.x, tp.y + MACHINE_H / 2, 'h');
+        else drawBelt(fp.x + MACHINE_W / 2, fp.y + MACHINE_H, tp.x + MACHINE_W / 2, tp.y, 'v');
+      });
+
+      drawBeltItems(dt);
+
+      // Idle worker (drawn behind machines for depth)
+      updateWorker(dt, cw, ch);
+      drawWorker();
+
+      // Machines
+      machineHitBoxes = [];
+      tasks.forEach((task, i) => { if (i < machinePositions.length) drawMachine(task, machinePositions[i], i); });
+
+      requestAnimationFrame(renderFrame);
+    }
+
+    // ============================================================
+    //  CANVAS INTERACTION
+    // ============================================================
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      hoveredMachine = -1;
+      for (let i = 0; i < machineHitBoxes.length; i++) {
+        const hb = machineHitBoxes[i];
+        if (hb && mx >= hb.x && mx <= hb.x + hb.w && my >= hb.y && my <= hb.y + hb.h) {
+          hoveredMachine = i;
+          canvas.style.cursor = 'pointer';
+          return;
+        }
+      }
+      canvas.style.cursor = 'default';
+    });
+
+    canvas.addEventListener('click', (e) => {
+      if (hoveredMachine >= 0 && tasksData) {
+        const task = tasksData.tasks[hoveredMachine];
+        if (task) { showMachinePopup(task); playSound('open'); }
+      }
+    });
+
+    window.addEventListener('resize', computeLayout);
+
+    // ============================================================
+    //  CLOCK
+    // ============================================================
     function updateClock() {
       const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+      document.getElementById('clock').textContent =
+        String(now.getHours()).padStart(2, '0') + ':' +
+        String(now.getMinutes()).padStart(2, '0') + ':' +
+        String(now.getSeconds()).padStart(2, '0');
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ===== DATA LOADING =====
+    // ============================================================
+    //  DATA LOADING
+    // ============================================================
     const DATA_BASE = './data/';
 
     async function loadJSON(file) {
@@ -839,11 +1477,11 @@
         const res = await fetch(DATA_BASE + file + '?t=' + Date.now());
         if (!res.ok) throw new Error(`${res.status}`);
         return await res.json();
-      } catch (e) {
-        console.warn(`Failed to load ${file}:`, e.message);
-        return null;
-      }
+      } catch (e) { console.warn(`Failed to load ${file}:`, e.message); return null; }
     }
+
+    // Track previous activity to detect new events
+    let prevActivityCount = 0;
 
     async function refreshData() {
       const [t, a, s, m] = await Promise.all([
@@ -852,133 +1490,37 @@
         loadJSON('services.json'),
         loadJSON('metrics.json')
       ]);
-      if (t) { tasksData = t; renderFactoryFloor(); renderSchedule(); }
-      if (a) { activityData = a; renderTicker(); }
+      if (t) { tasksData = t; renderSchedule(); }
+      if (a) {
+        // Sound alert for new activity
+        if (activityData && a.events.length > prevActivityCount) {
+          const newest = a.events[0];
+          if (newest.status === 'success') playSound('success');
+          else if (newest.status === 'error') playSound('error');
+          else playSound('alert');
+        }
+        prevActivityCount = a.events.length;
+        activityData = a;
+        renderTicker();
+      }
       if (s) { servicesData = s; renderServices(); updateHealth(); }
       if (m) { metricsData = m; renderStats(); renderSparkline(); renderCosts(); updateUptime(); }
     }
 
-    // ===== RENDER: SERVICES =====
+    // ============================================================
+    //  RENDER: SIDE PANELS
+    // ============================================================
     function renderServices() {
       const el = document.getElementById('servicesList');
       if (!servicesData) return;
       el.innerHTML = servicesData.services.map(svc => {
-        const statusClass = svc.status === 'active' ? 'active' : svc.status === 'error' ? 'error' : 'pending';
-        const statusLabel = svc.status === 'active' ? 'OK' : svc.status === 'error' ? 'ERR' : 'N/A';
+        const sc = svc.status === 'active' ? 'active' : svc.status === 'error' ? 'error' : 'pending';
+        const sl = svc.status === 'active' ? 'OK' : svc.status === 'error' ? 'ERR' : 'N/A';
         const checked = svc.lastChecked ? timeAgo(svc.lastChecked) : 'never';
-        return `
-          <div class="service-item">
-            <div class="service-dot ${statusClass}"></div>
-            <div class="service-info">
-              <div class="service-name">${svc.name}</div>
-              <div class="service-meta">${statusLabel} · ${checked}</div>
-              <div class="service-throughput">Today: ${svc.throughput.today} · Week: ${svc.throughput.week}</div>
-            </div>
-          </div>
-        `;
+        return `<div class="service-item"><div class="service-dot ${sc}"></div><div class="service-info"><div class="service-name">${svc.name}</div><div class="service-meta">${sl} · ${checked}</div><div class="service-throughput">Today: ${svc.throughput.today} · Week: ${svc.throughput.week}</div></div></div>`;
       }).join('');
     }
 
-    // ===== RENDER: FACTORY FLOOR =====
-    function renderFactoryFloor() {
-      const floor = document.getElementById('factoryFloor');
-      if (!tasksData) return;
-
-      const tasks = tasksData.tasks;
-      floor.innerHTML = '';
-
-      // Layout positions for machines
-      const positions = [
-        { x: 40, y: 30 },
-        { x: 260, y: 30 },
-        { x: 40, y: 180 },
-        { x: 260, y: 180 }
-      ];
-
-      // Draw belts between adjacent machines
-      const beltConfigs = [
-        { from: 0, to: 1, type: 'horizontal' },
-        { from: 0, to: 2, type: 'vertical' },
-        { from: 1, to: 3, type: 'vertical' },
-        { from: 2, to: 3, type: 'horizontal' }
-      ];
-
-      beltConfigs.forEach(bc => {
-        if (bc.from >= tasks.length || bc.to >= tasks.length) return;
-        const fromPos = positions[bc.from];
-        const toPos = positions[bc.to];
-        const belt = document.createElement('div');
-
-        if (bc.type === 'horizontal') {
-          belt.className = 'belt';
-          belt.style.left = (fromPos.x + 100) + 'px';
-          belt.style.top = (fromPos.y + 34) + 'px';
-          belt.style.width = (toPos.x - fromPos.x - 100) + 'px';
-        } else {
-          belt.className = 'belt belt-vertical';
-          belt.style.left = (fromPos.x + 44) + 'px';
-          belt.style.top = (fromPos.y + 80) + 'px';
-          belt.style.height = (toPos.y - fromPos.y - 80) + 'px';
-        }
-        floor.appendChild(belt);
-
-        // Add flowing items on belts
-        if (tasks[bc.from].lastResult === 'success' || tasks[bc.to].lastResult === 'success') {
-          const icons = ['&#9993;', '&#128196;', '&#128202;', '&#128269;'];
-          const item = document.createElement('div');
-          item.className = 'belt-item';
-          item.innerHTML = icons[bc.from % icons.length];
-          item.style.top = '-3px';
-          if (bc.type === 'horizontal') {
-            belt.style.position = 'absolute';
-            belt.style.overflow = 'hidden';
-          }
-          belt.appendChild(item);
-        }
-      });
-
-      // Draw machines
-      tasks.forEach((task, i) => {
-        if (i >= positions.length) return;
-        const pos = positions[i];
-        const machine = document.createElement('div');
-        const statusClass = task.status === 'running' ? 'running' : task.lastResult === 'error' ? 'error' : 'idle';
-        machine.className = `machine ${statusClass}`;
-        machine.style.left = pos.x + 'px';
-        machine.style.top = pos.y + 'px';
-        machine.onclick = () => showMachinePopup(task);
-
-        const gearSymbol = task.sprite === 'lab' ? '&#128300;' : task.sprite === 'beacon' ? '&#9829;' : '&#9881;';
-        const statusLabel = task.status === 'running' ? 'RUNNING' : task.lastResult === 'success' ? 'OK' : task.lastResult || 'IDLE';
-
-        machine.innerHTML = `
-          <div class="machine-gears">${gearSymbol}</div>
-          <div class="machine-name">${task.name}</div>
-          <div class="machine-status ${task.lastResult || 'idle'}">${statusLabel}</div>
-        `;
-        floor.appendChild(machine);
-      });
-
-      // Add source/sink nodes
-      const sources = [
-        { name: 'iCloud', x: 0, y: 5, color: 'var(--accent-blue)' },
-        { name: 'Web', x: 350, y: 5, color: 'var(--accent-blue)' },
-        { name: 'Reports', x: 175, y: 280, color: 'var(--accent-purple)' }
-      ];
-
-      sources.forEach(src => {
-        const node = document.createElement('div');
-        node.className = 'service-node';
-        node.style.left = src.x + 'px';
-        node.style.top = src.y + 'px';
-        node.style.borderColor = src.color;
-        node.style.color = src.color;
-        node.textContent = `[ ${src.name} ]`;
-        floor.appendChild(node);
-      });
-    }
-
-    // ===== RENDER: STATS =====
     function renderStats() {
       const el = document.getElementById('statCards');
       if (!metricsData) return;
@@ -989,72 +1531,41 @@
         { label: 'Files Created', value: d.filesCreated, max: 10 },
         { label: 'Research (hrs)', value: d.researchHours, max: 8 }
       ];
-
       el.innerHTML = stats.map(s => {
         const pct = Math.min(100, (s.value / s.max) * 100);
-        return `
-          <div class="stat-card">
-            <div class="stat-label">${s.label}</div>
-            <div class="stat-bar-row">
-              <div class="stat-bar">
-                <div class="stat-bar-fill" style="width:${pct}%"></div>
-              </div>
-              <span class="stat-value">${s.value}</span>
-            </div>
-          </div>
-        `;
+        return `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-bar-row"><div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div><span class="stat-value">${s.value}</span></div></div>`;
       }).join('');
     }
 
-    // ===== RENDER: SPARKLINE =====
     function renderSparkline() {
       const el = document.getElementById('sparkline');
       if (!metricsData || !metricsData.tokenHistory) return;
-
       const hist = metricsData.tokenHistory;
-      const maxTokens = Math.max(...hist.map(h => h.tokens));
-
-      el.innerHTML = hist.map((h, i) => {
-        const pct = (h.tokens / maxTokens) * 100;
-        return `<div class="sparkline-bar" style="height:${pct}%" title="${h.date}: ${(h.tokens/1000).toFixed(0)}K"></div>`;
-      }).join('');
-
+      const max = Math.max(...hist.map(h => h.tokens));
+      el.innerHTML = hist.map(h => `<div class="sparkline-bar" style="height:${(h.tokens/max)*100}%" title="${h.date}: ${(h.tokens/1000).toFixed(0)}K"></div>`).join('');
       document.getElementById('sparklineStart').textContent = hist[0]?.date?.slice(5) || '--';
       document.getElementById('sparklineEnd').textContent = hist[hist.length - 1]?.date?.slice(5) || '--';
     }
 
-    // ===== RENDER: COSTS =====
     function renderCosts() {
       if (!metricsData) return;
       document.getElementById('costToday').textContent = `$${metricsData.daily.estimatedCost.toFixed(2)}`;
       document.getElementById('costWeek').textContent = `$${metricsData.weekly.estimatedCost.toFixed(2)}`;
     }
 
-    // ===== RENDER: SCHEDULE =====
     function renderSchedule() {
       const el = document.getElementById('scheduleList');
       if (!tasksData) return;
-
-      el.innerHTML = tasksData.tasks
-        .filter(t => t.nextRun || t.schedule)
-        .map(t => {
-          const nextTime = t.nextRun ? new Date(t.nextRun).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : t.schedule;
-          const dotClass = t.lastResult === 'success' ? 'success' : 'pending';
-          return `
-            <div class="schedule-item">
-              <span class="schedule-name">${t.name}</span>
-              <span class="schedule-time">${nextTime}</span>
-              <span class="schedule-dot ${dotClass}"></span>
-            </div>
-          `;
-        }).join('');
+      el.innerHTML = tasksData.tasks.filter(t => t.nextRun || t.schedule).map(t => {
+        const nt = t.nextRun ? new Date(t.nextRun).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : t.schedule;
+        const dc = t.lastResult === 'success' ? 'success' : 'pending';
+        return `<div class="schedule-item"><span class="schedule-name">${t.name}</span><span class="schedule-time">${nt}</span><span class="schedule-dot ${dc}"></span></div>`;
+      }).join('');
     }
 
-    // ===== RENDER: TICKER =====
     function renderTicker() {
       const el = document.getElementById('ticker');
       if (!activityData) return;
-
       el.innerHTML = activityData.events.map(ev => {
         const cls = ev.status === 'success' ? 'success' : ev.status === 'error' ? 'error' : 'info';
         const icon = ev.status === 'success' ? '&#10003;' : ev.status === 'error' ? '&#9888;' : '&#9654;';
@@ -1063,7 +1574,6 @@
       }).join('');
     }
 
-    // ===== HEALTH BAR =====
     function updateHealth() {
       if (!servicesData) return;
       const total = servicesData.services.length;
@@ -1071,24 +1581,26 @@
       const pct = Math.round((active / total) * 100);
       document.getElementById('healthBar').style.width = pct + '%';
       document.getElementById('healthLabel').textContent = pct + '%';
-
       const bar = document.getElementById('healthBar');
-      if (pct >= 75) bar.style.background = 'var(--accent-green)';
-      else if (pct >= 50) bar.style.background = 'var(--accent-yellow)';
-      else bar.style.background = 'var(--accent-red)';
+      bar.style.background = pct >= 75 ? 'var(--accent-green)' : pct >= 50 ? 'var(--accent-yellow)' : 'var(--accent-red)';
     }
 
-    // ===== UPTIME =====
     function updateUptime() {
       if (!metricsData) return;
       document.getElementById('uptime').textContent = `UPTIME: ${metricsData.uptimeDays}d`;
     }
 
-    // ===== MACHINE POPUP =====
+    // ============================================================
+    //  MACHINE POPUP + AUTO-STOP + OUTPUT VIEWER
+    // ============================================================
+    let currentPopupTask = null;
+    let runTimers = {};         // taskId -> { interval, timeout, startedAt, duration }
+    let outputPanelOpen = false;
+
     function showMachinePopup(task) {
+      currentPopupTask = task;
       document.getElementById('popupTitle').textContent = task.name;
       const body = document.getElementById('popupBody');
-
       const rows = [
         ['Status', task.status],
         ['Last Result', task.lastResult || '--'],
@@ -1101,26 +1613,189 @@
         ['Inputs', (task.inputSources || []).join(', ') || '--'],
         ['Outputs', (task.outputTargets || []).join(', ') || '--']
       ];
+      body.innerHTML = rows.map(([k, v]) => `<div class="popup-row"><span class="popup-key">${k}</span><span class="popup-val">${v}</span></div>`).join('');
 
-      body.innerHTML = rows.map(([k, v]) => `
-        <div class="popup-row">
-          <span class="popup-key">${k}</span>
-          <span class="popup-val">${v}</span>
-        </div>
-      `).join('');
+      // Toggle button
+      const toggleBtn = document.getElementById('popupToggle');
+      const isRunning = task.status === 'running';
+      toggleBtn.textContent = isRunning ? '[ STOP ]' : '[ RUN ]';
+      toggleBtn.classList.toggle('stopping', isRunning);
+
+      // Progress bar — show if task is running and has a timer
+      const progressEl = document.getElementById('popupProgress');
+      const timer = runTimers[task.id];
+      if (isRunning && timer) {
+        progressEl.classList.add('visible');
+        updateProgressBar(task.id);
+      } else {
+        progressEl.classList.remove('visible');
+      }
+
+      // Output button — show if task has lastOutput
+      const outputBtn = document.getElementById('popupOutputBtn');
+      outputBtn.style.display = task.lastOutput ? '' : 'none';
+
+      // Reset output panel
+      outputPanelOpen = false;
+      document.getElementById('popupOutputPanel').classList.remove('visible');
 
       document.getElementById('popupOverlay').classList.add('visible');
     }
 
+    function updateProgressBar(taskId) {
+      const timer = runTimers[taskId];
+      if (!timer) return;
+      const elapsed = (Date.now() - timer.startedAt) / 1000;
+      const pct = Math.min(100, (elapsed / timer.duration) * 100);
+      const remaining = Math.max(0, Math.ceil(timer.duration - elapsed));
+      document.getElementById('popupProgressFill').style.width = pct + '%';
+      document.getElementById('popupProgressTime').textContent = `${Math.floor(elapsed)}s / ${timer.duration}s`;
+    }
+
+    function toggleOutputPanel() {
+      if (!currentPopupTask || !currentPopupTask.lastOutput) return;
+      outputPanelOpen = !outputPanelOpen;
+      const panel = document.getElementById('popupOutputPanel');
+      panel.classList.toggle('visible', outputPanelOpen);
+
+      if (outputPanelOpen) {
+        const out = currentPopupTask.lastOutput;
+        document.getElementById('popupOutputTitle').textContent = out.title || 'Output';
+        document.getElementById('popupOutputContent').textContent = out.content || 'No output data.';
+        document.getElementById('popupOutputMeta').textContent = out.generatedAt ? 'Generated: ' + timeAgo(out.generatedAt) : '';
+        playSound('click');
+      }
+    }
+
+    async function toggleTaskStatus() {
+      if (!currentPopupTask) return;
+
+      const taskId = currentPopupTask.id;
+      const isRunning = currentPopupTask.status === 'running';
+      const newStatus = isRunning ? 'idle' : 'running';
+      const newResult = isRunning ? 'success' : currentPopupTask.lastResult;
+
+      const toggleBtn = document.getElementById('popupToggle');
+      toggleBtn.textContent = '[ ... ]';
+      toggleBtn.style.pointerEvents = 'none';
+
+      try {
+        const res = await fetch('/data/tasks.json', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: taskId,
+            status: newStatus,
+            lastResult: newResult,
+            lastRun: isRunning ? new Date().toISOString() : currentPopupTask.lastRun,
+          }),
+        });
+
+        if (!res.ok) throw new Error(`Server responded ${res.status}`);
+        playSound(isRunning ? 'success' : 'alert');
+
+        if (isRunning) {
+          // Manual stop — clear auto-stop timer
+          clearRunTimer(taskId);
+        } else {
+          // Started — set up auto-stop timer
+          const duration = currentPopupTask.metrics?.avgDurationSec || 30;
+          startRunTimer(taskId, duration);
+        }
+
+        await refreshData();
+
+        // Re-open popup with updated task
+        if (tasksData) {
+          const updated = tasksData.tasks.find(t => t.id === taskId);
+          if (updated) showMachinePopup(updated);
+        }
+      } catch (e) {
+        console.error('Toggle failed:', e);
+        playSound('error');
+        toggleBtn.textContent = '[ ERR ]';
+        setTimeout(() => {
+          toggleBtn.textContent = isRunning ? '[ STOP ]' : '[ RUN ]';
+        }, 1500);
+      }
+
+      toggleBtn.style.pointerEvents = '';
+    }
+
+    // ── Auto-stop timer system ──
+    function startRunTimer(taskId, durationSec) {
+      clearRunTimer(taskId); // clear any existing
+
+      const timer = {
+        startedAt: Date.now(),
+        duration: durationSec,
+        // Update progress bar every 500ms if popup is open for this task
+        interval: setInterval(() => {
+          if (currentPopupTask && currentPopupTask.id === taskId) {
+            updateProgressBar(taskId);
+          }
+        }, 500),
+        // Auto-stop after duration
+        timeout: setTimeout(() => autoStopTask(taskId), durationSec * 1000),
+      };
+
+      runTimers[taskId] = timer;
+    }
+
+    function clearRunTimer(taskId) {
+      const timer = runTimers[taskId];
+      if (timer) {
+        clearInterval(timer.interval);
+        clearTimeout(timer.timeout);
+        delete runTimers[taskId];
+      }
+    }
+
+    async function autoStopTask(taskId) {
+      clearRunTimer(taskId);
+
+      try {
+        await fetch('/data/tasks.json', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: taskId,
+            status: 'idle',
+            lastResult: 'success',
+            lastRun: new Date().toISOString(),
+          }),
+        });
+
+        playSound('success');
+        await refreshData();
+
+        // If popup is still open for this task, refresh it
+        if (currentPopupTask && currentPopupTask.id === taskId && tasksData) {
+          const updated = tasksData.tasks.find(t => t.id === taskId);
+          if (updated) showMachinePopup(updated);
+        }
+      } catch (e) {
+        console.error('Auto-stop failed:', e);
+        playSound('error');
+      }
+    }
+
     function closePopup() {
       document.getElementById('popupOverlay').classList.remove('visible');
+      outputPanelOpen = false;
+      document.getElementById('popupOutputPanel').classList.remove('visible');
+      document.getElementById('popupProgress').classList.remove('visible');
+      currentPopupTask = null;
+      playSound('close');
     }
 
     document.getElementById('popupOverlay').addEventListener('click', function(e) {
       if (e.target === this) closePopup();
     });
 
-    // ===== HELPERS =====
+    // ============================================================
+    //  HELPERS
+    // ============================================================
     function timeAgo(isoStr) {
       const diff = Date.now() - new Date(isoStr).getTime();
       const mins = Math.floor(diff / 60000);
@@ -1131,15 +1806,35 @@
       return Math.floor(hrs / 24) + 'd ago';
     }
 
-    // ===== KEYBOARD SHORTCUTS =====
+    // ============================================================
+    //  KEYBOARD SHORTCUTS
+    // ============================================================
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closePopup();
+      // Don't trigger shortcuts when typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch (e.key.toLowerCase()) {
+        case 'escape': closePopup(); break;
+        case 't': cycleTheme(); break;
+        case 'm': toggleSound(); break;
+        case 'a': toggleAltMode(); break;
+      }
     });
 
-    // ===== INIT =====
+    // ============================================================
+    //  INIT
+    // ============================================================
+    computeLayout();
     refreshData();
-    // Auto-refresh every 30 seconds
+    requestAnimationFrame(renderFrame);
     setInterval(refreshData, 30000);
+
+    // Play boot sound after first user interaction (Chrome autoplay policy)
+    document.addEventListener('click', function bootOnce() {
+      initAudio();
+      playSound('boot');
+      document.removeEventListener('click', bootOnce);
+    }, { once: true });
   </script>
 </body>
 </html>

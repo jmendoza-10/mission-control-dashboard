@@ -1,53 +1,88 @@
 {
-  "lastUpdated": "2026-03-24T21:00:00Z",
+  "lastUpdated": "2026-03-24T18:11:52.756629+00:00",
   "events": [
+    {
+      "timestamp": "2026-03-24T18:11:52.756596+00:00",
+      "type": "manual",
+      "source": "heartbeat",
+      "message": "Heartbeat manually stopped from Mission Control",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-24T18:11:50.078073+00:00",
+      "type": "manual",
+      "source": "morning-briefing",
+      "message": "8AM Brief manually stopped from Mission Control",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-24T18:11:47.745363+00:00",
+      "type": "manual",
+      "source": "heartbeat",
+      "message": "Heartbeat manually started from Mission Control",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-24T18:11:05.066839+00:00",
+      "type": "manual",
+      "source": "morning-briefing",
+      "message": "8AM Brief manually started from Mission Control",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-24T17:57:12.645Z",
+      "type": "manual",
+      "source": "morning-briefing",
+      "message": "8AM Brief manually started from Mission Control",
+      "status": "info"
+    },
     {
       "timestamp": "2026-03-24T21:00:00Z",
       "type": "task",
       "source": "daily-eod-summary",
-      "message": "EOD summary generated — memory system, mission control research, job search updated",
+      "message": "EOD summary generated \u2014 memory system, mission control research, job search updated",
       "status": "success"
     },
     {
       "timestamp": "2026-03-24T12:00:00Z",
       "type": "system",
       "source": "interactive-session",
-      "message": "System initialized — agent configuration files created",
+      "message": "System initialized \u2014 agent configuration files created",
       "status": "success"
     },
     {
       "timestamp": "2026-03-24T09:48:00Z",
       "type": "task",
       "source": "job-search",
-      "message": "Job search updated — 33 new listings processed, 3 high-priority leads flagged",
+      "message": "Job search updated \u2014 33 new listings processed, 3 high-priority leads flagged",
       "status": "success"
     },
     {
       "timestamp": "2026-03-24T08:08:00Z",
       "type": "task",
       "source": "morning-briefing",
-      "message": "Morning briefing complete — 3 emails, 2 calendar events processed",
+      "message": "Morning briefing complete \u2014 3 emails, 2 calendar events processed",
       "status": "success"
     },
     {
       "timestamp": "2026-03-24T07:03:00Z",
       "type": "task",
       "source": "mission-control-research",
-      "message": "Mission control dashboard research completed — Factorio 8-bit design plan ready",
+      "message": "Mission control dashboard research completed \u2014 Factorio 8-bit design plan ready",
       "status": "success"
     },
     {
       "timestamp": "2026-03-24T06:33:00Z",
       "type": "task",
       "source": "health-research",
-      "message": "Health integration research completed — Oura Ring + Apple Health analysis",
+      "message": "Health integration research completed \u2014 Oura Ring + Apple Health analysis",
       "status": "success"
     },
     {
       "timestamp": "2026-03-24T06:00:00Z",
       "type": "task",
       "source": "openclaw-research",
-      "message": "OpenClaw deep-dive completed — 4800 word report with 85 source links",
+      "message": "OpenClaw deep-dive completed \u2014 4800 word report with 85 source links",
       "status": "success"
     },
     {
