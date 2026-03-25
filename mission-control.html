@@ -623,6 +623,242 @@
       text-align: right;
     }
 
+    /* ===== ALERT BADGE (HEADER) ===== */
+    .alert-badge {
+      font-family: var(--font-main);
+      font-size: 7px;
+      background: var(--bg-deep);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      padding: 3px 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .alert-badge:hover {
+      color: var(--accent-green);
+      border-color: var(--accent-green);
+    }
+
+    .alert-badge.critical {
+      background: var(--accent-red);
+      color: var(--bg-deep);
+      animation: badge-pulse 1.5s infinite;
+    }
+
+    .alert-badge.warning {
+      background: var(--accent-yellow);
+      color: var(--bg-deep);
+      animation: badge-pulse 1.5s infinite;
+    }
+
+    .alert-badge.success {
+      background: var(--accent-green);
+      color: var(--bg-deep);
+      animation: none;
+    }
+
+    .alert-badge.clear {
+      animation: none;
+    }
+
+    @keyframes badge-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* ===== ALERT TOAST STACK ===== */
+    .alert-stack {
+      position: fixed;
+      top: 50px;
+      right: 16px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 280px;
+      pointer-events: none;
+    }
+
+    .alert-toast {
+      pointer-events: auto;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      padding: 8px 10px;
+      font-size: 7px;
+      cursor: pointer;
+      animation: toast-enter 0.3s ease-out;
+      transition: opacity 0.3s, transform 0.3s;
+      position: relative;
+    }
+
+    .alert-toast.critical {
+      border-left: 3px solid var(--accent-red);
+      box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
+      animation: toast-enter 0.3s ease-out, alert-pulse-red 2s infinite;
+    }
+
+    .alert-toast.warning {
+      border-left: 3px solid var(--accent-yellow);
+    }
+
+    .alert-toast.success {
+      border-left: 3px solid var(--accent-green);
+    }
+
+    .alert-toast.info {
+      border-left: 3px solid var(--accent-blue);
+    }
+
+    @keyframes toast-enter {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes toast-exit {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    @keyframes alert-pulse-red {
+      0%, 100% { box-shadow: 0 0 8px rgba(255, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 16px rgba(255, 68, 68, 0.7); }
+    }
+
+    .alert-toast-icon {
+      font-size: 8px;
+      margin-right: 6px;
+      display: inline-block;
+    }
+
+    .alert-toast-title {
+      color: var(--text-primary);
+      font-weight: normal;
+    }
+
+    .alert-toast-time {
+      float: right;
+      color: var(--text-dim);
+      font-size: 6px;
+    }
+
+    .alert-toast-message {
+      color: var(--text-secondary);
+      font-size: 6px;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .alert-toast-dismiss {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      color: var(--text-dim);
+      font-size: 6px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font-main);
+    }
+
+    /* ===== ALERT DRAWER ===== */
+    .alert-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 100vh;
+      background: var(--bg-panel);
+      border-left: 2px solid var(--accent-green);
+      z-index: 800;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .alert-drawer.visible {
+      transform: translateX(0);
+    }
+
+    .alert-drawer-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 9px;
+      color: var(--accent-green);
+      text-transform: uppercase;
+    }
+
+    .alert-filter-row {
+      display: flex;
+      gap: 4px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .alert-filter-btn {
+      font-family: var(--font-main);
+      font-size: 6px;
+      background: var(--bg-deep);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      padding: 3px 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .alert-filter-btn:hover,
+    .alert-filter-btn.active {
+      color: var(--accent-green);
+      border-color: var(--accent-green);
+    }
+
+    .alert-drawer-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+    }
+
+    .alert-history-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(42, 42, 90, 0.3);
+      font-size: 7px;
+    }
+
+    .alert-history-item-icon {
+      display: inline-block;
+      margin-right: 6px;
+      font-size: 8px;
+    }
+
+    .alert-history-item-time {
+      color: var(--text-dim);
+      font-size: 6px;
+    }
+
+    .alert-history-item-title {
+      color: var(--text-primary);
+      font-weight: normal;
+    }
+
+    .alert-history-item-message {
+      color: var(--text-secondary);
+      font-size: 6px;
+      margin-top: 2px;
+    }
+
+    .alert-drawer-footer {
+      padding: 8px 12px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 800px) {
       .main { grid-template-columns: 1fr; }
@@ -630,6 +866,8 @@
       .factory-canvas-wrap { min-height: 400px; }
       .header-mission { display: none; }
       .hints-bar { flex-wrap: wrap; }
+      .alert-stack { max-width: 90vw; right: 5%; }
+      .alert-drawer { width: 90vw; }
     }
   </style>
 </head>
@@ -647,6 +885,7 @@
         <button class="ctrl-btn" id="btnSound" title="Toggle sound (M)">SND</button>
         <button class="ctrl-btn" id="btnAlt" title="Alt-mode details (A)">ALT</button>
         <a href="learning-hub.html" class="ctrl-btn" style="text-decoration:none;color:inherit;" title="GRINDE Learning Hub">LRN</a>
+        <button class="alert-badge" id="alertBadge" title="View alerts (N)">[!0]</button>
       </div>
       <div class="health-bar-container">
         <div class="health-bar">
@@ -743,6 +982,7 @@
     <span><span class="hint-key">T</span>Theme</span>
     <span><span class="hint-key">M</span>Mute</span>
     <span><span class="hint-key">A</span>Alt-mode</span>
+    <span><span class="hint-key">N</span>Alerts</span>
     <span><span class="hint-key">Esc</span>Close</span>
   </div>
 
@@ -770,6 +1010,26 @@
         <button class="popup-btn popup-output" id="popupOutputBtn" onclick="toggleOutputPanel()" style="display:none">[ OUTPUT ]</button>
         <button class="popup-btn popup-close" onclick="closePopup()">[ CLOSE ]</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== ALERT SYSTEM ===== -->
+  <!-- Alert Toast Stack (top-right) -->
+  <div class="alert-stack" id="alertStack"></div>
+
+  <!-- Alert History Drawer (slide-out from right) -->
+  <div class="alert-drawer" id="alertDrawer">
+    <div class="alert-drawer-header">ALERT HISTORY</div>
+    <div class="alert-filter-row">
+      <button class="alert-filter-btn active" data-filter="all">ALL</button>
+      <button class="alert-filter-btn" data-filter="critical">CRIT</button>
+      <button class="alert-filter-btn" data-filter="warning">WARN</button>
+      <button class="alert-filter-btn" data-filter="success">OK</button>
+    </div>
+    <div class="alert-drawer-list" id="alertDrawerList"></div>
+    <div class="alert-drawer-footer">
+      <button class="nes-btn" id="alertClearBtn" style="flex:1;font-size:6px;">CLEAR ALL</button>
+      <button class="nes-btn" id="alertCloseBtn" style="flex:1;font-size:6px;">CLOSE</button>
     </div>
   </div>
 
@@ -854,6 +1114,22 @@
         [262, 330, 392, 523].forEach((f, i) => {
           setTimeout(() => playTone(f, 0.12, 'square', 0.05), i * 120);
         });
+      },
+      alertCritical: () => {
+        playTone(150, 0.2, 'sawtooth', 0.08);
+        setTimeout(() => playTone(120, 0.3, 'sawtooth', 0.06), 200);
+      },
+      alertWarning: () => {
+        playTone(600, 0.08, 'square', 0.05);
+        setTimeout(() => playTone(600, 0.08, 'square', 0.05), 150);
+      },
+      alertSuccess: () => {
+        playTone(523, 0.1, 'square', 0.05);
+        setTimeout(() => playTone(659, 0.1, 'square', 0.05), 100);
+        setTimeout(() => playTone(784, 0.15, 'square', 0.05), 200);
+      },
+      alertInfo: () => {
+        playTone(500, 0.05, 'triangle', 0.04);
       },
     };
 
@@ -1355,6 +1631,35 @@
     // ============================================================
     let lastTime = 0;
 
+    function drawMachineAlerts(task, pos) {
+      const taskAlerts = activeAlerts.filter(a => a.linkedEntity === task.id);
+      if (taskAlerts.length === 0) return;
+
+      const worst = taskAlerts.find(a => a.category === 'critical')
+        || taskAlerts.find(a => a.category === 'warning');
+      if (!worst) return;
+
+      const x = pos.x + MACHINE_W - 12;
+      const y = pos.y - 10;
+
+      // Blinking triangle
+      if (Math.sin(animTime * 4) > 0) {
+        ctx.fillStyle = worst.category === 'critical' ? C.red : C.yellow;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 8);
+        ctx.lineTo(x - 6, y + 2);
+        ctx.lineTo(x + 6, y + 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Exclamation mark
+        ctx.fillStyle = C.bgDeep;
+        ctx.font = '6px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        ctx.fillText('!', x, y);
+      }
+    }
+
     function renderFrame(timestamp) {
       const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
       lastTime = timestamp;
@@ -1422,7 +1727,12 @@
 
       // Machines
       machineHitBoxes = [];
-      tasks.forEach((task, i) => { if (i < machinePositions.length) drawMachine(task, machinePositions[i], i); });
+      tasks.forEach((task, i) => {
+        if (i < machinePositions.length) {
+          drawMachine(task, machinePositions[i], i);
+          drawMachineAlerts(task, machinePositions[i]);
+        }
+      });
 
       requestAnimationFrame(renderFrame);
     }
@@ -1480,15 +1790,298 @@
       } catch (e) { console.warn(`Failed to load ${file}:`, e.message); return null; }
     }
 
+    // ============================================================
+    //  ALERT SYSTEM
+    // ============================================================
+    let activeAlerts = [];
+    let alertHistory = [];
+    let alertFilter = 'all';
+    let alertsData = null;
+
+    async function loadAlerts() {
+      const data = await loadJSON('alerts.json');
+      if (data) alertsData = data;
+      return data;
+    }
+
+    function generateClientAlerts() {
+      const alerts = [];
+
+      // Check tasks for errors
+      if (tasksData) {
+        tasksData.tasks.forEach(task => {
+          if (task.lastResult === 'error') {
+            alerts.push({
+              id: `client-err-${task.id}`,
+              category: 'critical',
+              source: task.id,
+              title: `${task.name} Failed`,
+              message: `Last run resulted in error`,
+              linkedEntity: task.id,
+              ttl: 60,
+              timestamp: new Date().toISOString(),
+            });
+          }
+          if (task.metrics && task.metrics.successRate < 0.8) {
+            alerts.push({
+              id: `client-warn-rate-${task.id}`,
+              category: 'warning',
+              source: task.id,
+              title: `${task.name} Degraded`,
+              message: `Success rate: ${(task.metrics.successRate * 100).toFixed(0)}%`,
+              linkedEntity: task.id,
+              ttl: 30,
+              timestamp: new Date().toISOString(),
+            });
+          }
+        });
+      }
+
+      // Check services for disconnections
+      if (servicesData) {
+        servicesData.services.forEach(svc => {
+          if (svc.status === 'error') {
+            alerts.push({
+              id: `client-svc-${svc.id}`,
+              category: 'critical',
+              source: svc.id,
+              title: `${svc.name} Disconnected`,
+              message: `Service unreachable`,
+              ttl: 60,
+              timestamp: new Date().toISOString(),
+            });
+          }
+          if (svc.status === 'pending') {
+            alerts.push({
+              id: `client-svc-pend-${svc.id}`,
+              category: 'info',
+              source: svc.id,
+              title: `${svc.name} Pending`,
+              message: `Not yet connected`,
+              ttl: 8,
+              timestamp: new Date().toISOString(),
+            });
+          }
+        });
+      }
+
+      // Check token budget
+      if (metricsData) {
+        const pct = metricsData.daily.tokensUsed / 200000;
+        if (pct > 0.9) {
+          alerts.push({
+            id: 'client-tokens-crit',
+            category: 'critical',
+            source: 'system',
+            title: 'Token Budget Critical',
+            message: `${(pct * 100).toFixed(0)}% of daily limit used`,
+            ttl: 60,
+            timestamp: new Date().toISOString(),
+          });
+        } else if (pct > 0.8) {
+          alerts.push({
+            id: 'client-tokens-warn',
+            category: 'warning',
+            source: 'system',
+            title: 'Token Budget Warning',
+            message: `${(pct * 100).toFixed(0)}% of daily limit used`,
+            ttl: 30,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+
+      return alerts;
+    }
+
+    function mergeAlerts(serverAlerts, clientAlerts) {
+      const merged = [];
+      const seen = new Set();
+
+      // Add server alerts
+      if (serverAlerts && serverAlerts.length > 0) {
+        serverAlerts.forEach(a => {
+          if (!a.dismissed) {
+            merged.push(a);
+            seen.add(a.id);
+          }
+        });
+      }
+
+      // Add client alerts (avoid duplicates)
+      clientAlerts.forEach(a => {
+        if (!seen.has(a.id)) {
+          merged.push(a);
+          seen.add(a.id);
+        }
+      });
+
+      // Sort by timestamp (newest first)
+      merged.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      return merged.slice(0, 50); // Keep only last 50
+    }
+
+    function updateAlertBadge() {
+      const badge = document.getElementById('alertBadge');
+      const count = activeAlerts.length;
+
+      if (count === 0) {
+        badge.textContent = '[!0]';
+        badge.className = 'alert-badge clear';
+      } else {
+        const highestSeverity = activeAlerts.some(a => a.category === 'critical') ? 'critical'
+          : activeAlerts.some(a => a.category === 'warning') ? 'warning'
+          : activeAlerts.some(a => a.category === 'success') ? 'success'
+          : 'info';
+
+        badge.textContent = `[!${count}]`;
+        badge.className = `alert-badge ${highestSeverity}`;
+      }
+    }
+
+    function renderAlertToasts() {
+      const stack = document.getElementById('alertStack');
+      stack.innerHTML = '';
+
+      activeAlerts.slice(0, 5).forEach(alert => {
+        const toast = document.createElement('div');
+        toast.className = `alert-toast ${alert.category}`;
+        toast.dataset.alertId = alert.id;
+
+        const icons = { critical: '!!', warning: '!', success: '✓', info: '>' };
+        const icon = icons[alert.category] || '•';
+
+        const timestamp = new Date(alert.timestamp);
+        const hours = String(timestamp.getHours()).padStart(2, '0');
+        const mins = String(timestamp.getMinutes()).padStart(2, '0');
+
+        toast.innerHTML = `
+          <span class="alert-toast-time">${hours}:${mins}</span>
+          <span class="alert-toast-icon">${icon}</span>
+          <span class="alert-toast-title">${alert.title}</span>
+          <div class="alert-toast-message">${alert.message}</div>
+        `;
+
+        toast.addEventListener('click', () => {
+          if (alert.linkedEntity) {
+            const task = tasksData?.tasks.find(t => t.id === alert.linkedEntity);
+            if (task) {
+              showMachinePopup(task);
+              playSound('click');
+            }
+          }
+        });
+
+        const dismiss = document.createElement('button');
+        dismiss.className = 'alert-toast-dismiss';
+        dismiss.textContent = 'X';
+        dismiss.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dismissAlert(alert.id);
+        });
+        toast.appendChild(dismiss);
+
+        stack.appendChild(toast);
+      });
+    }
+
+    function dismissAlert(alertId) {
+      const idx = activeAlerts.findIndex(a => a.id === alertId);
+      if (idx >= 0) {
+        const alert = activeAlerts[idx];
+        alertHistory.push({ ...alert, dismissed: true });
+        activeAlerts.splice(idx, 1);
+        renderAlertToasts();
+        updateAlertBadge();
+        renderAlertDrawer();
+        playSound('close');
+      }
+    }
+
+    function renderAlertDrawer() {
+      const list = document.getElementById('alertDrawerList');
+      list.innerHTML = '';
+
+      const filtered = alertFilter === 'all'
+        ? alertHistory
+        : alertHistory.filter(a => a.category === alertFilter);
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-dim);padding:16px;text-align:center;">No alerts</div>';
+        return;
+      }
+
+      filtered.forEach(alert => {
+        const item = document.createElement('div');
+        item.className = 'alert-history-item';
+
+        const icons = { critical: '!!', warning: '!', success: '✓', info: '>' };
+        const icon = icons[alert.category] || '•';
+
+        const timestamp = new Date(alert.timestamp);
+        const hours = String(timestamp.getHours()).padStart(2, '0');
+        const mins = String(timestamp.getMinutes()).padStart(2, '0');
+
+        item.innerHTML = `
+          <div>
+            <span class="alert-history-item-icon">${icon}</span>
+            <span class="alert-history-item-title">${alert.title}</span>
+            <span class="alert-history-item-time">${hours}:${mins}</span>
+          </div>
+          <div class="alert-history-item-message">${alert.message}</div>
+        `;
+
+        list.appendChild(item);
+      });
+    }
+
+    function clearAllAlerts() {
+      alertHistory = [];
+      renderAlertDrawer();
+      playSound('click');
+    }
+
+    function closeAlertDrawer() {
+      document.getElementById('alertDrawer').classList.remove('visible');
+      playSound('close');
+    }
+
+    function toggleAlertDrawer() {
+      document.getElementById('alertDrawer').classList.toggle('visible');
+      if (document.getElementById('alertDrawer').classList.contains('visible')) {
+        playSound('open');
+        renderAlertDrawer();
+      } else {
+        playSound('close');
+      }
+    }
+
+    // Alert drawer event listeners
+    document.getElementById('alertBadge').addEventListener('click', toggleAlertDrawer);
+    document.getElementById('alertCloseBtn').addEventListener('click', closeAlertDrawer);
+    document.getElementById('alertClearBtn').addEventListener('click', clearAllAlerts);
+
+    document.querySelectorAll('.alert-filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.alert-filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        alertFilter = e.target.dataset.filter;
+        renderAlertDrawer();
+      });
+    });
+
     // Track previous activity to detect new events
     let prevActivityCount = 0;
+    let lastAlertSoundTime = 0;
 
     async function refreshData() {
-      const [t, a, s, m] = await Promise.all([
+      const [t, a, s, m, alts] = await Promise.all([
         loadJSON('tasks.json'),
         loadJSON('activity.json'),
         loadJSON('services.json'),
-        loadJSON('metrics.json')
+        loadJSON('metrics.json'),
+        loadAlerts()
       ]);
       if (t) { tasksData = t; renderSchedule(); }
       if (a) {
@@ -1505,6 +2098,28 @@
       }
       if (s) { servicesData = s; renderServices(); updateHealth(); }
       if (m) { metricsData = m; renderStats(); renderSparkline(); renderCosts(); updateUptime(); }
+
+      // Process alerts
+      const serverAlerts = alts?.alerts || [];
+      const clientAlerts = generateClientAlerts();
+      const merged = mergeAlerts(serverAlerts, clientAlerts);
+
+      // Detect new alerts and play sounds (debounce to avoid spam)
+      const now = Date.now();
+      const newAlerts = merged.filter(a => !activeAlerts.find(aa => aa.id === a.id));
+      if (newAlerts.length > 0 && now - lastAlertSoundTime > 500) {
+        newAlerts.forEach(alert => {
+          if (alert.category === 'critical') playSound('alertCritical');
+          else if (alert.category === 'warning') playSound('alertWarning');
+          else if (alert.category === 'success') playSound('alertSuccess');
+          else playSound('alertInfo');
+        });
+        lastAlertSoundTime = now;
+      }
+
+      activeAlerts = merged;
+      renderAlertToasts();
+      updateAlertBadge();
     }
 
     // ============================================================
@@ -1814,10 +2429,16 @@
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       switch (e.key.toLowerCase()) {
-        case 'escape': closePopup(); break;
+        case 'escape':
+          closePopup();
+          if (document.getElementById('alertDrawer').classList.contains('visible')) {
+            closeAlertDrawer();
+          }
+          break;
         case 't': cycleTheme(); break;
         case 'm': toggleSound(); break;
         case 'a': toggleAltMode(); break;
+        case 'n': toggleAlertDrawer(); break;
       }
     });
 
