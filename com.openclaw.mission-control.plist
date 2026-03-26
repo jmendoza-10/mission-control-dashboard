@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.openclaw.mission-control</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/jorgemendoza/workspace/mission-control-dashboard/server.py</string>
+        <string>8080</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/jorgemendoza/workspace/mission-control-dashboard</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>MC_DATA_DIR</key>
+        <string>/Users/jorgemendoza/workspace/mission-control-dashboard/data</string>
+        <key>HOME</key>
+        <string>/Users/jorgemendoza</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+
+    <!-- Auto-start at login -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Auto-restart if the process dies -->
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Throttle restarts: wait 5 seconds between crash-restarts -->
+    <key>ThrottleInterval</key>
+    <integer>5</integer>
+
+    <!-- Log output for debugging -->
+    <key>StandardOutPath</key>
+    <string>/tmp/mission-control.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/mission-control-error.log</string>
+</dict>
+</plist>

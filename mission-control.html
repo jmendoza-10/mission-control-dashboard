@@ -859,6 +859,138 @@
       gap: 8px;
     }
 
+    /* ===== SYSTEM MINIMAP ===== */
+    .minimap-container {
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      z-index: 400;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .minimap-container.hidden {
+      opacity: 0;
+      transform: scale(0.8);
+      pointer-events: none;
+    }
+
+    .minimap-frame {
+      background: var(--bg-panel);
+      border: 2px solid var(--accent-green);
+      box-shadow: 0 0 12px var(--glow-soft), inset 0 0 20px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .minimap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 6px;
+      background: var(--bg-deep);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .minimap-title {
+      font-family: var(--font-main);
+      font-size: 5px;
+      color: var(--accent-green);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .minimap-close-btn {
+      font-family: var(--font-main);
+      font-size: 5px;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0 2px;
+    }
+
+    .minimap-close-btn:hover {
+      color: var(--accent-green);
+    }
+
+    #minimapCanvas {
+      display: block;
+      width: 180px;
+      height: 120px;
+      image-rendering: pixelated;
+      cursor: pointer;
+    }
+
+    .minimap-stats {
+      display: flex;
+      gap: 6px;
+      padding: 3px 6px;
+      font-size: 5px;
+      font-family: var(--font-main);
+      background: var(--bg-deep);
+      border-top: 1px solid var(--border-color);
+      justify-content: center;
+    }
+
+    .minimap-stat {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .minimap-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .minimap-dot.running { background: var(--accent-orange); box-shadow: 0 0 4px var(--accent-orange); }
+    .minimap-dot.ok { background: var(--accent-green); }
+    .minimap-dot.error { background: var(--accent-red); box-shadow: 0 0 4px var(--accent-red); }
+    .minimap-dot.idle { background: var(--text-dim); }
+
+    .minimap-stat-val { color: var(--text-secondary); }
+
+    /* Minimap pulse on critical alert */
+    .minimap-frame.alert-active {
+      animation: minimap-alert-pulse 2s infinite;
+    }
+
+    @keyframes minimap-alert-pulse {
+      0%, 100% { border-color: var(--accent-green); }
+      50% { border-color: var(--accent-red); box-shadow: 0 0 16px rgba(255, 68, 68, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.5); }
+    }
+
+    /* ===== AGENT VIEW STYLES ===== */
+    .view-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-color);
+      padding: 2px;
+    }
+
+    .view-btn {
+      font-family: var(--font-main);
+      font-size: 6px;
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid transparent;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .view-btn:hover { color: var(--text-secondary); }
+
+    .view-btn.active {
+      color: var(--accent-green);
+      background: var(--bg-panel);
+      border-color: var(--border-color);
+      text-shadow: 0 0 6px var(--glow-soft);
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 800px) {
       .main { grid-template-columns: 1fr; }
@@ -868,6 +1000,7 @@
       .hints-bar { flex-wrap: wrap; }
       .alert-stack { max-width: 90vw; right: 5%; }
       .alert-drawer { width: 90vw; }
+      .minimap-container { display: none; }
     }
   </style>
 </head>
@@ -881,6 +1014,11 @@
     </div>
     <div class="header-right">
       <div class="header-controls">
+        <div class="view-toggle">
+          <button class="view-btn active" id="viewFactory" title="Factory Floor (1)">FAC</button>
+          <button class="view-btn" id="viewAgents" title="Agent Workspace (2)">AGT</button>
+          <button class="view-btn" id="viewDispatch" title="Dispatch Pipeline (3)">DSP</button>
+        </div>
         <button class="ctrl-btn" id="btnTheme" title="Cycle theme (T)">THM</button>
         <button class="ctrl-btn" id="btnSound" title="Toggle sound (M)">SND</button>
         <button class="ctrl-btn" id="btnAlt" title="Alt-mode details (A)">ALT</button>
@@ -979,10 +1117,14 @@
 
   <!-- ===== KEYBOARD HINTS ===== -->
   <div class="hints-bar">
+    <span><span class="hint-key">1</span>Factory</span>
+    <span><span class="hint-key">2</span>Agents</span>
+    <span><span class="hint-key">3</span>Dispatch</span>
     <span><span class="hint-key">T</span>Theme</span>
     <span><span class="hint-key">M</span>Mute</span>
     <span><span class="hint-key">A</span>Alt-mode</span>
     <span><span class="hint-key">N</span>Alerts</span>
+    <span><span class="hint-key">P</span>Map</span>
     <span><span class="hint-key">Esc</span>Close</span>
   </div>
 
@@ -1033,6 +1175,23 @@
     </div>
   </div>
 
+  <!-- ===== SYSTEM MINIMAP ===== -->
+  <div class="minimap-container" id="minimapContainer">
+    <div class="minimap-frame" id="minimapFrame">
+      <div class="minimap-header">
+        <span class="minimap-title">System Map</span>
+        <button class="minimap-close-btn" id="minimapCloseBtn" title="Hide minimap (P)">X</button>
+      </div>
+      <canvas id="minimapCanvas" width="360" height="240"></canvas>
+      <div class="minimap-stats" id="minimapStats">
+        <span class="minimap-stat"><span class="minimap-dot running"></span><span class="minimap-stat-val" id="mmRunning">0</span></span>
+        <span class="minimap-stat"><span class="minimap-dot ok"></span><span class="minimap-stat-val" id="mmOk">0</span></span>
+        <span class="minimap-stat"><span class="minimap-dot error"></span><span class="minimap-stat-val" id="mmError">0</span></span>
+        <span class="minimap-stat"><span class="minimap-dot idle"></span><span class="minimap-stat-val" id="mmIdle">0</span></span>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== JAVASCRIPT ===== -->
   <script>
     // ============================================================
@@ -1042,6 +1201,7 @@
     let activityData = null;
     let servicesData = null;
     let metricsData = null;
+    let dispatchData = null;
 
     // ============================================================
     //  THEME SYSTEM
@@ -1358,7 +1518,10 @@
     //  CANVAS SETUP
     // ============================================================
     const canvas = document.getElementById('factoryCanvas');
-    const ctx = canvas.getContext('2d');
+    const displayCtx = canvas.getContext('2d');
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+    let ctx = offCtx;  // all draw calls target offscreen buffer
 
     const MACHINE_W = 64;
     const MACHINE_H = 56;
@@ -1373,7 +1536,7 @@
     let machinePositions = [];
 
     // Idle worker state
-    let worker = { x: 0, y: 0, targetX: 0, targetY: 0, frame: 0, timer: 0, moveTimer: 0, visible: true };
+    let worker = { x: 0, y: 0, targetX: 0, targetY: 0, frame: 0, timer: 0, moveTimer: 0, wanderInterval: 3 + Math.random() * 2, visible: true };
 
     function computeLayout() {
       const wrap = canvas.parentElement;
@@ -1382,7 +1545,10 @@
       canvas.height = wrap.clientHeight * dpr;
       canvas.style.width = wrap.clientWidth + 'px';
       canvas.style.height = wrap.clientHeight + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      displayCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      offCanvas.width = canvas.width;
+      offCanvas.height = canvas.height;
+      offCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const cw = wrap.clientWidth;
       const ch = wrap.clientHeight;
@@ -1584,6 +1750,660 @@
     }
 
     // ============================================================
+    //  AGENT VIEW — SPRITES
+    // ============================================================
+    // Janus = two-faced helmet (orchestrator)
+    const SPRITE_JANUS = [
+      'nn__JJJJ__nn',
+      'n_JJJJJJJJ_n',
+      '_JJjjjjjjJJ_',
+      'JJjJJjjJJjJJ',
+      'JJjJJjjJJjJJ',
+      'JJjjjjjjjjJJ',
+      '_JJjjjjjjJJ_',
+      'n_JJJJJJJJ_n',
+      'nn_JJJJJJ_nn',
+      'nnn_JJJJ_nnn',
+      'nnnn_JJ_nnnn',
+      'nnnnnJJnnnnn',
+    ];
+
+    // Vulcan = anvil/hammer (builder)
+    const SPRITE_VULCAN = [
+      'nnnnVVVVnnnn',
+      'nnnVVVVVVnnn',
+      'nnVVvvvvVVnn',
+      'nVVvvvvvvVVn',
+      'VVvvvvvvvvVV',
+      'VVvvvvvvvvVV',
+      'nVVvvvvvvVVn',
+      'nnVVVVVVVVnn',
+      'nn_VvvvV_nn',
+      'nn_VvvvV_nn',
+      'nn_VVVVV_nn',
+      'n_VVVVVVV_n',
+    ];
+
+    // Extend palette for agent sprites
+    PALETTE['J'] = '#4488ff';
+    PALETTE['j'] = '#2266cc';
+    PALETTE['V'] = '#ff8c00';
+    PALETTE['v'] = '#cc6600';
+
+    // ============================================================
+    //  AGENT VIEW — STATE & RENDERING
+    // ============================================================
+    let currentView = 'factory';  // 'factory' or 'agents'
+    let agentsData = null;
+    let agentHitBoxes = [];
+    let hoveredAgent = -1;
+
+    function switchView(view) {
+      if (view === currentView) return;
+      currentView = view;
+      document.getElementById('viewFactory').classList.toggle('active', view === 'factory');
+      document.getElementById('viewAgents').classList.toggle('active', view === 'agents');
+      document.getElementById('viewDispatch').classList.toggle('active', view === 'dispatch');
+
+      // Update factory header text
+      document.querySelector('.factory-header').textContent =
+        view === 'factory' ? 'Factory Floor' : view === 'agents' ? 'Agent Workspace' : 'Dispatch Pipeline';
+
+      // Update legend
+      const legend = document.querySelector('.factory-legend');
+      if (view === 'agents') {
+        legend.innerHTML = `
+          <span class="legend-item"><span class="legend-swatch" style="background:#4488ff;border-color:#4488ff"></span> Janus</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#ff8c00;border-color:#ff8c00"></span> Vulcan</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#00ff41;border-color:#00ff41"></span> OK</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#555577;border-color:#555577"></span> Idle</span>
+        `;
+      } else if (view === 'dispatch') {
+        legend.innerHTML = `
+          <span class="legend-item"><span class="legend-swatch" style="background:#4488ff;border-color:#4488ff"></span> Queued</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#ff8c00;border-color:#ff8c00"></span> Processing</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#00ff41;border-color:#00ff41"></span> Completed</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#ff4444;border-color:#ff4444"></span> Failed</span>
+        `;
+      } else {
+        legend.innerHTML = `
+          <span class="legend-item"><span class="legend-swatch" style="background:#ff8c00;border-color:#ff8c00"></span> Running</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#555577;border-color:#555577"></span> Idle</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#ff4444;border-color:#ff4444"></span> Error</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#4488ff;border-color:#4488ff"></span> Service</span>
+        `;
+      }
+      hoveredAgent = -1;
+      agentHitBoxes = [];
+      dispatchHitBoxes = [];
+      playSound('click');
+    }
+
+    document.getElementById('viewFactory').addEventListener('click', () => switchView('factory'));
+    document.getElementById('viewAgents').addEventListener('click', () => switchView('agents'));
+    document.getElementById('viewDispatch').addEventListener('click', () => switchView('dispatch'));
+
+    function drawAgentCard(agent, x, y, w, h, index) {
+      const isActive = agent.status === 'active' || agent.status === 'running';
+      const isHovered = hoveredAgent === index;
+      const accentColor = agent.id === 'janus' ? C.blue : C.orange;
+      const accentDim = agent.id === 'janus' ? '#1a3366' : '#663300';
+
+      // Card background
+      ctx.fillStyle = C.bgPanel;
+      ctx.fillRect(x, y, w, h);
+
+      // Border with agent accent color
+      ctx.strokeStyle = isHovered ? C.green : accentColor;
+      ctx.lineWidth = isHovered ? 2 : 1;
+      if (isHovered) {
+        ctx.shadowColor = C.green;
+        ctx.shadowBlur = 10;
+      }
+      ctx.strokeRect(x, y, w, h);
+      ctx.shadowBlur = 0;
+
+      // Active glow
+      if (isActive) {
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = accentColor;
+        ctx.shadowBlur = 8;
+        ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+        ctx.shadowBlur = 0;
+      }
+
+      // Agent sprite
+      const spriteDef = agent.id === 'janus' ? SPRITE_JANUS : SPRITE_VULCAN;
+      const sprite = getSprite('agent_' + agent.id, spriteDef);
+      const spriteScale = 3;
+      const spriteX = x + 10;
+      const spriteY = y + 12;
+      drawPixelSprite(sprite, spriteX, spriteY, spriteScale);
+
+      // Agent name
+      ctx.fillStyle = accentColor;
+      ctx.font = '9px "Press Start 2P"';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(agent.name, spriteX + sprite.width * spriteScale + 12, y + 10);
+
+      // Role subtitle
+      ctx.fillStyle = C.textSec;
+      ctx.font = '6px "Press Start 2P"';
+      ctx.fillText(agent.role, spriteX + sprite.width * spriteScale + 12, y + 24);
+
+      // Status indicator dot
+      const dotX = x + w - 20;
+      const dotY = y + 14;
+      const dotColor = isActive ? C.green : C.dim;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = dotColor;
+      if (isActive) {
+        ctx.shadowColor = dotColor;
+        ctx.shadowBlur = 6;
+      }
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Status text
+      const statusText = isActive ? 'ACTIVE' : 'IDLE';
+      ctx.fillStyle = isActive ? C.green : C.dim;
+      ctx.font = '6px "Press Start 2P"';
+      ctx.textAlign = 'right';
+      ctx.fillText(statusText, x + w - 10, y + 24);
+
+      // Divider line
+      const divY = y + 50;
+      ctx.strokeStyle = C.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + 8, divY);
+      ctx.lineTo(x + w - 8, divY);
+      ctx.stroke();
+
+      // Metrics row
+      ctx.textAlign = 'left';
+      const metricsY = divY + 12;
+      const metrics = agent.metrics || {};
+
+      // Tasks completed
+      ctx.fillStyle = C.textSec;
+      ctx.font = '6px "Press Start 2P"';
+      ctx.fillText('Tasks', x + 10, metricsY);
+      ctx.fillStyle = C.green;
+      ctx.fillText(String(metrics.tasksCompleted || 0), x + 60, metricsY);
+
+      // Success rate
+      ctx.fillStyle = C.textSec;
+      ctx.fillText('Rate', x + 10, metricsY + 14);
+      const rate = ((metrics.successRate || 0) * 100).toFixed(0);
+      ctx.fillStyle = metrics.successRate >= 0.9 ? C.green : C.yellow;
+      ctx.fillText(rate + '%', x + 60, metricsY + 14);
+
+      // Today
+      ctx.fillStyle = C.textSec;
+      ctx.fillText('Today', x + 10, metricsY + 28);
+      ctx.fillStyle = C.green;
+      ctx.fillText(String(metrics.tasksToday || 0), x + 60, metricsY + 28);
+
+      // Tokens
+      ctx.fillStyle = C.textSec;
+      ctx.fillText('Tokens', x + 10, metricsY + 42);
+      ctx.fillStyle = C.yellow;
+      const toks = metrics.tokensUsedToday || 0;
+      ctx.fillText((toks / 1000).toFixed(0) + 'K', x + 60, metricsY + 42);
+
+      // Current task or recent action
+      const taskY = metricsY + 60;
+      ctx.strokeStyle = C.border;
+      ctx.beginPath();
+      ctx.moveTo(x + 8, taskY - 6);
+      ctx.lineTo(x + w - 8, taskY - 6);
+      ctx.stroke();
+
+      if (agent.currentTask) {
+        ctx.fillStyle = C.orange;
+        ctx.font = '6px "Press Start 2P"';
+        ctx.fillText('Working on:', x + 10, taskY + 4);
+        ctx.fillStyle = C.white;
+        ctx.fillText(agent.currentTask, x + 10, taskY + 16, w - 20);
+      } else if (agent.recentActions && agent.recentActions.length > 0) {
+        ctx.fillStyle = C.dim;
+        ctx.font = '6px "Press Start 2P"';
+        ctx.fillText('Last:', x + 10, taskY + 4);
+        ctx.fillStyle = C.textSec;
+        const lastAction = agent.recentActions[0].action;
+        // Truncate long text
+        const maxChars = Math.floor((w - 20) / 5);
+        const truncated = lastAction.length > maxChars ? lastAction.slice(0, maxChars - 2) + '..' : lastAction;
+        ctx.fillText(truncated, x + 10, taskY + 16, w - 20);
+        ctx.fillStyle = C.dim;
+        ctx.fillText(timeAgo(agent.recentActions[0].timestamp), x + 10, taskY + 28);
+      }
+
+      // Store hitbox
+      agentHitBoxes[index] = { x, y, w, h, agentIndex: index };
+    }
+
+    function drawTaskQueue(x, y, w) {
+      if (!agentsData || !agentsData.taskQueue) return;
+
+      ctx.fillStyle = C.textSec;
+      ctx.font = '7px "Press Start 2P"';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('TASK QUEUE', x, y);
+
+      const queue = agentsData.taskQueue;
+      const itemH = 28;
+      const startY = y + 16;
+
+      queue.forEach((task, i) => {
+        const iy = startY + i * itemH;
+
+        // Background
+        ctx.fillStyle = C.bgPanelAlt;
+        ctx.fillRect(x, iy, w, itemH - 4);
+        ctx.strokeStyle = C.border;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, iy, w, itemH - 4);
+
+        // Priority dot
+        const pColor = task.priority === 'high' ? C.red : task.priority === 'medium' ? C.yellow : C.dim;
+        ctx.beginPath();
+        ctx.arc(x + 8, iy + 10, 3, 0, Math.PI * 2);
+        ctx.fillStyle = pColor;
+        ctx.fill();
+
+        // Task title
+        ctx.fillStyle = C.white;
+        ctx.font = '6px "Press Start 2P"';
+        ctx.textAlign = 'left';
+        const maxChars = Math.floor((w - 40) / 5);
+        const title = task.title.length > maxChars ? task.title.slice(0, maxChars - 2) + '..' : task.title;
+        ctx.fillText(title, x + 16, iy + 6);
+
+        // Assigned agent
+        const agentColor = task.assignedTo === 'janus' ? C.blue : C.orange;
+        ctx.fillStyle = agentColor;
+        ctx.font = '5px "Press Start 2P"';
+        ctx.fillText(task.assignedTo.toUpperCase(), x + 16, iy + 17);
+      });
+    }
+
+    function renderAgentsView(cw, ch) {
+      // Background grid (same as factory)
+      ctx.strokeStyle = 'rgba(42, 42, 90, 0.15)';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx < cw; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, ch); ctx.stroke(); }
+      for (let gy = 0; gy < ch; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(cw, gy); ctx.stroke(); }
+
+      if (!agentsData) {
+        ctx.fillStyle = C.dim;
+        ctx.font = '10px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Loading agents...', cw / 2, ch / 2);
+        return;
+      }
+
+      agentHitBoxes = [];
+
+      // Layout: two agent cards side by side, task queue below
+      const cardW = Math.min(260, (cw - 60) / 2);
+      const cardH = Math.min(200, ch * 0.52);
+      const gap = 20;
+      const totalW = cardW * 2 + gap;
+      const startX = (cw - totalW) / 2;
+      const startY = 20;
+
+      // Draw connection line between agents
+      ctx.strokeStyle = 'rgba(68, 136, 255, 0.2)';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(startX + cardW, startY + cardH / 2);
+      ctx.lineTo(startX + cardW + gap, startY + cardH / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw agent cards
+      agentsData.agents.forEach((agent, i) => {
+        const ax = startX + i * (cardW + gap);
+        drawAgentCard(agent, ax, startY, cardW, cardH, i);
+      });
+
+      // Draw task queue below
+      const queueY = startY + cardH + 20;
+      const queueW = totalW;
+      if (queueY + 30 < ch) {
+        drawTaskQueue(startX, queueY, queueW);
+      }
+    }
+
+    // ============================================================
+    //  AGENT POPUP
+    // ============================================================
+    let currentPopupAgent = null;
+
+    function showAgentPopup(agent) {
+      currentPopupAgent = agent;
+      document.getElementById('popupTitle').textContent = agent.name + ' — ' + agent.role;
+
+      const body = document.getElementById('popupBody');
+      const m = agent.metrics || {};
+      const u = agent.uptime || {};
+
+      const rows = [
+        ['Status', agent.status === 'active' || agent.status === 'running' ? 'Active' : 'Idle'],
+        ['Description', agent.description || '--'],
+        ['Sessions Today', u.sessionsToday ?? '--'],
+        ['Total Hours', u.totalHours ?? '--'],
+        ['Tasks Completed', m.tasksCompleted ?? '--'],
+        ['Tasks Today', m.tasksToday ?? '--'],
+        ['Success Rate', m.successRate ? (m.successRate * 100).toFixed(0) + '%' : '--'],
+        ['Avg Response', m.avgResponseSec ? m.avgResponseSec + 's' : '--'],
+        ['Tokens Today', m.tokensUsedToday ? (m.tokensUsedToday / 1000).toFixed(0) + 'K' : '--'],
+        ['Capabilities', (agent.capabilities || []).join(', ') || '--'],
+        ['Linked Tasks', (agent.linkedTasks || []).join(', ') || '--'],
+      ];
+      body.innerHTML = rows.map(([k, v]) => `<div class="popup-row"><span class="popup-key">${k}</span><span class="popup-val">${v}</span></div>`).join('');
+
+      // Hide toggle and output buttons for agent popup
+      document.getElementById('popupToggle').style.display = 'none';
+      document.getElementById('popupOutputBtn').style.display = 'none';
+      document.getElementById('popupProgress').classList.remove('visible');
+      outputPanelOpen = false;
+      document.getElementById('popupOutputPanel').classList.remove('visible');
+
+      // Show recent actions in output panel
+      if (agent.recentActions && agent.recentActions.length > 0) {
+        document.getElementById('popupOutputBtn').style.display = '';
+        document.getElementById('popupOutputBtn').textContent = '[ HISTORY ]';
+      }
+
+      document.getElementById('popupOverlay').classList.add('visible');
+    }
+
+    // ============================================================
+    //  DISPATCH VIEW — STATE & RENDERING
+    // ============================================================
+    let dispatchHitBoxes = [];
+    let hoveredDispatch = -1;
+
+    function drawPipelineStage(label, count, x, y, w, h, color, glowActive) {
+      // Stage box
+      ctx.fillStyle = C.bgPanel;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = count > 0 ? color : C.dim;
+      ctx.lineWidth = count > 0 ? 2 : 1;
+      if (glowActive && count > 0) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8 + Math.sin(animTime * 3) * 4;
+      }
+      ctx.strokeRect(x, y, w, h);
+      ctx.shadowBlur = 0;
+
+      // Count (large)
+      ctx.fillStyle = count > 0 ? color : C.dim;
+      ctx.font = '12px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(count), x + w / 2, y + h / 2 - 4);
+
+      // Label (small)
+      ctx.fillStyle = C.textSec;
+      ctx.font = '5px "Press Start 2P"';
+      ctx.fillText(label, x + w / 2, y + h - 6);
+    }
+
+    function drawDispatchPipeline(cw, pipeY) {
+      if (!dispatchData || !dispatchData.pipeline) return;
+      const p = dispatchData.pipeline;
+
+      const stages = [
+        { label: 'QUEUE', count: p.queued, color: C.blue, glow: false },
+        { label: 'PROCESS', count: p.processing, color: C.orange, glow: true },
+        { label: 'COMPLETE', count: p.completed, color: C.green, glow: false },
+        { label: 'FAILED', count: p.failed, color: C.red, glow: false },
+      ];
+
+      const stageW = 72;
+      const stageH = 40;
+      const gap = 36;
+      const totalW = stages.length * stageW + (stages.length - 1) * gap;
+      const startX = (cw - totalW) / 2;
+
+      // Draw belt segments between stages
+      for (let i = 0; i < stages.length - 1; i++) {
+        const x1 = startX + i * (stageW + gap) + stageW;
+        const x2 = startX + (i + 1) * (stageW + gap);
+        const beltY = pipeY + stageH / 2;
+        drawBelt(x1, beltY, x2, beltY, 'h');
+
+        // Arrow head
+        ctx.fillStyle = C.beltGray;
+        ctx.beginPath();
+        ctx.moveTo(x2 - 4, beltY - 5);
+        ctx.lineTo(x2 + 2, beltY);
+        ctx.lineTo(x2 - 4, beltY + 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Draw stages
+      stages.forEach((stage, i) => {
+        const sx = startX + i * (stageW + gap);
+        drawPipelineStage(stage.label, stage.count, sx, pipeY, stageW, stageH, stage.color, stage.glow);
+      });
+
+      // Pipeline title
+      ctx.fillStyle = C.textSec;
+      ctx.font = '7px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('VULCAN FORGE PIPELINE', cw / 2, pipeY - 16);
+    }
+
+    function drawDispatchActivity(cw, startY) {
+      if (!dispatchData || !dispatchData.recentSpecs) return;
+
+      ctx.fillStyle = C.textSec;
+      ctx.font = '7px "Press Start 2P"';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('RECENT DISPATCHES', 20, startY);
+
+      const specs = dispatchData.recentSpecs.slice(0, 5);
+      const rowH = 28;
+      const listY = startY + 16;
+      const rowW = cw - 40;
+
+      dispatchHitBoxes = [];
+
+      specs.forEach((spec, i) => {
+        const iy = listY + i * rowH;
+        const isHovered = hoveredDispatch === i;
+
+        // Row background (alternating)
+        ctx.fillStyle = i % 2 === 0 ? C.bgPanel : C.bgPanelAlt;
+        ctx.fillRect(20, iy, rowW, rowH - 4);
+        if (isHovered) {
+          ctx.strokeStyle = C.green;
+          ctx.lineWidth = 1;
+          ctx.shadowColor = C.green;
+          ctx.shadowBlur = 4;
+          ctx.strokeRect(20, iy, rowW, rowH - 4);
+          ctx.shadowBlur = 0;
+        }
+
+        // Status dot
+        const statusColors = { queued: C.blue, processing: C.orange, completed: C.green, failed: C.red };
+        const dotColor = statusColors[spec.status] || C.dim;
+        ctx.beginPath();
+        ctx.arc(32, iy + 10, 4, 0, Math.PI * 2);
+        ctx.fillStyle = dotColor;
+        if (spec.status === 'processing') {
+          ctx.shadowColor = C.orange;
+          ctx.shadowBlur = 6 + Math.sin(animTime * 4) * 3;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Task type
+        ctx.fillStyle = C.orange;
+        ctx.font = '6px "Press Start 2P"';
+        ctx.textAlign = 'left';
+        ctx.fillText(spec.task, 44, iy + 5);
+
+        // Description (truncated)
+        ctx.fillStyle = C.textSec;
+        ctx.font = '5px "Press Start 2P"';
+        const maxChars = Math.floor((rowW - 160) / 4);
+        const desc = spec.description.length > maxChars ? spec.description.slice(0, maxChars - 2) + '..' : spec.description;
+        ctx.fillText(desc, 44, iy + 16);
+
+        // Status text + elapsed
+        ctx.textAlign = 'right';
+        ctx.fillStyle = statusColors[spec.status] || C.dim;
+        ctx.font = '5px "Press Start 2P"';
+        const statusLabel = spec.status.toUpperCase();
+        ctx.fillText(statusLabel, 20 + rowW - 8, iy + 5);
+
+        if (spec.elapsedSec != null) {
+          ctx.fillStyle = C.dim;
+          ctx.fillText(spec.elapsedSec + 's', 20 + rowW - 8, iy + 16);
+        } else {
+          ctx.fillStyle = C.dim;
+          ctx.fillText('pending...', 20 + rowW - 8, iy + 16);
+        }
+
+        // Store hitbox for click
+        dispatchHitBoxes[i] = { x: 20, y: iy, w: rowW, h: rowH - 4, specIndex: i };
+      });
+    }
+
+    function drawRoutingStats(cw, statsY) {
+      if (!dispatchData || !dispatchData.routingStats) return;
+      const rs = dispatchData.routingStats;
+
+      const barW = Math.min(300, cw - 80);
+      const barX = (cw - barW) / 2;
+
+      // Routing split bar
+      const total = rs.vulcanTasks + rs.janusTasks || 1;
+      const vulcanPct = rs.vulcanTasks / total;
+      const vulcanW = Math.round(barW * vulcanPct);
+
+      ctx.fillStyle = C.orange;
+      ctx.fillRect(barX, statsY, vulcanW, 10);
+      ctx.fillStyle = C.blue;
+      ctx.fillRect(barX + vulcanW, statsY, barW - vulcanW, 10);
+      ctx.strokeStyle = C.border;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(barX, statsY, barW, 10);
+
+      // Labels
+      ctx.textBaseline = 'top';
+      ctx.font = '6px "Press Start 2P"';
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = C.orange;
+      ctx.fillText('VULCAN: ' + rs.vulcanTasks, barX, statsY + 16);
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = C.dim;
+      ctx.fillText(rs.totalRouted + ' routed today', cw / 2, statsY + 16);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = C.blue;
+      ctx.fillText('JANUS: ' + rs.janusTasks, barX + barW, statsY + 16);
+
+      // Tokens saved
+      ctx.textAlign = 'center';
+      ctx.fillStyle = C.green;
+      ctx.font = '5px "Press Start 2P"';
+      const saved = rs.tokensSaved ? (rs.tokensSaved / 1000).toFixed(0) + 'K tokens saved' : '';
+      ctx.fillText(saved, cw / 2, statsY + 28);
+    }
+
+    function renderDispatchView(cw, ch) {
+      // Background grid
+      ctx.strokeStyle = 'rgba(42, 42, 90, 0.15)';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx < cw; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, ch); ctx.stroke(); }
+      for (let gy = 0; gy < ch; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(cw, gy); ctx.stroke(); }
+
+      if (!dispatchData) {
+        ctx.fillStyle = C.dim;
+        ctx.font = '10px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('No dispatch data', cw / 2, ch / 2 - 10);
+        ctx.font = '6px "Press Start 2P"';
+        ctx.fillText('Waiting for data/dispatch.json...', cw / 2, ch / 2 + 10);
+        return;
+      }
+
+      // Layout: pipeline at top, activity list in middle, routing stats at bottom
+      const pipeY = 30;
+      drawDispatchPipeline(cw, pipeY);
+
+      const activityY = pipeY + 70;
+      drawDispatchActivity(cw, activityY);
+
+      const specsCount = Math.min(5, (dispatchData.recentSpecs || []).length);
+      const statsY = activityY + 16 + specsCount * 28 + 20;
+      if (statsY + 40 < ch) {
+        drawRoutingStats(cw, statsY);
+      }
+    }
+
+    function showDispatchPopup(spec) {
+      document.getElementById('popupTitle').textContent = 'DISPATCH: ' + spec.id;
+
+      const body = document.getElementById('popupBody');
+      const rows = [
+        ['Task', spec.task],
+        ['Description', spec.description],
+        ['Status', spec.status],
+        ['Requested', spec.requestedAt ? timeAgo(spec.requestedAt) : '--'],
+        ['Elapsed', spec.elapsedSec != null ? spec.elapsedSec + 's' : 'pending'],
+      ];
+      body.innerHTML = rows.map(([k, v]) => `<div class="popup-row"><span class="popup-key">${k}</span><span class="popup-val">${v}</span></div>`).join('');
+
+      // Hide toggle button — dispatch specs aren't interactive
+      document.getElementById('popupToggle').style.display = 'none';
+      document.getElementById('popupProgress').classList.remove('visible');
+      currentPopupAgent = null;
+      currentPopupTask = null;
+
+      // Show spec/result in output panel
+      const outputBtn = document.getElementById('popupOutputBtn');
+      if (spec.spec || spec.result) {
+        outputBtn.style.display = '';
+        outputBtn.textContent = '[ SPEC ]';
+
+        // Pre-populate output panel
+        let content = '';
+        if (spec.spec) content += '── VULCAN SPEC ──\n' + spec.spec;
+        if (spec.result) content += '\n\n── VULCAN RESULT ──\n' + spec.result;
+        document.getElementById('popupOutputTitle').textContent = 'Dispatch Details';
+        document.getElementById('popupOutputContent').textContent = content;
+        document.getElementById('popupOutputMeta').textContent = spec.completedAt ? 'Completed: ' + timeAgo(spec.completedAt) : '';
+      } else {
+        outputBtn.style.display = 'none';
+      }
+
+      outputPanelOpen = false;
+      document.getElementById('popupOutputPanel').classList.remove('visible');
+      document.getElementById('popupOverlay').classList.add('visible');
+      playSound('open');
+    }
+
+    // ============================================================
     //  IDLE WORKER CHARACTER
     // ============================================================
     function updateWorker(dt, cw, ch) {
@@ -1597,8 +2417,9 @@
       worker.moveTimer += dt;
 
       // Pick new target every 3-5 seconds
-      if (worker.moveTimer > 3 + Math.random() * 2) {
+      if (worker.moveTimer > worker.wanderInterval) {
         worker.moveTimer = 0;
+        worker.wanderInterval = 3 + Math.random() * 2;  // set threshold for NEXT wander
         // Wander between machines
         const padding = 40;
         worker.targetX = padding + Math.random() * (cw - padding * 2);
@@ -1629,7 +2450,7 @@
     // ============================================================
     //  MAIN RENDER LOOP
     // ============================================================
-    let lastTime = 0;
+    let lastTime = -1;
 
     function drawMachineAlerts(task, pos) {
       const taskAlerts = activeAlerts.filter(a => a.linkedEntity === task.id);
@@ -1661,6 +2482,7 @@
     }
 
     function renderFrame(timestamp) {
+      if (lastTime < 0) { lastTime = timestamp; requestAnimationFrame(renderFrame); return; }
       const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
       lastTime = timestamp;
       animTime += dt;
@@ -1673,6 +2495,27 @@
 
       ctx.clearRect(0, 0, cw, ch);
 
+      // ── AGENTS VIEW ──
+      if (currentView === 'agents') {
+        renderAgentsView(cw, ch);
+        displayCtx.clearRect(0, 0, canvas.width, canvas.height);
+        displayCtx.drawImage(offCanvas, 0, 0);
+        if (Math.floor(animTime * 10) !== Math.floor((animTime - dt) * 10)) updateMinimap();
+        requestAnimationFrame(renderFrame);
+        return;
+      }
+
+      // ── DISPATCH VIEW ──
+      if (currentView === 'dispatch') {
+        renderDispatchView(cw, ch);
+        displayCtx.clearRect(0, 0, canvas.width, canvas.height);
+        displayCtx.drawImage(offCanvas, 0, 0);
+        if (Math.floor(animTime * 10) !== Math.floor((animTime - dt) * 10)) updateMinimap();
+        requestAnimationFrame(renderFrame);
+        return;
+      }
+
+      // ── FACTORY VIEW ──
       // Background grid
       ctx.strokeStyle = 'rgba(42, 42, 90, 0.15)';
       ctx.lineWidth = 1;
@@ -1684,6 +2527,8 @@
         ctx.font = '10px "Press Start 2P"';
         ctx.textAlign = 'center';
         ctx.fillText('Loading...', cw / 2, ch / 2);
+        displayCtx.clearRect(0, 0, canvas.width, canvas.height);
+        displayCtx.drawImage(offCanvas, 0, 0);
         requestAnimationFrame(renderFrame);
         return;
       }
@@ -1734,6 +2579,15 @@
         }
       });
 
+      // Blit offscreen buffer to visible canvas (eliminates flicker)
+      displayCtx.clearRect(0, 0, canvas.width, canvas.height);
+      displayCtx.drawImage(offCanvas, 0, 0);
+
+      // Update minimap (throttled to ~10fps for performance)
+      if (Math.floor(animTime * 10) !== Math.floor((animTime - dt) * 10)) {
+        updateMinimap();
+      }
+
       requestAnimationFrame(renderFrame);
     }
 
@@ -1743,6 +2597,35 @@
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+
+      if (currentView === 'dispatch') {
+        hoveredDispatch = -1;
+        for (let i = 0; i < dispatchHitBoxes.length; i++) {
+          const hb = dispatchHitBoxes[i];
+          if (hb && mx >= hb.x && mx <= hb.x + hb.w && my >= hb.y && my <= hb.y + hb.h) {
+            hoveredDispatch = i;
+            canvas.style.cursor = 'pointer';
+            return;
+          }
+        }
+        canvas.style.cursor = 'default';
+        return;
+      }
+
+      if (currentView === 'agents') {
+        hoveredAgent = -1;
+        for (let i = 0; i < agentHitBoxes.length; i++) {
+          const hb = agentHitBoxes[i];
+          if (hb && mx >= hb.x && mx <= hb.x + hb.w && my >= hb.y && my <= hb.y + hb.h) {
+            hoveredAgent = i;
+            canvas.style.cursor = 'pointer';
+            return;
+          }
+        }
+        canvas.style.cursor = 'default';
+        return;
+      }
+
       hoveredMachine = -1;
       for (let i = 0; i < machineHitBoxes.length; i++) {
         const hb = machineHitBoxes[i];
@@ -1756,6 +2639,20 @@
     });
 
     canvas.addEventListener('click', (e) => {
+      if (currentView === 'dispatch') {
+        if (hoveredDispatch >= 0 && dispatchData && dispatchData.recentSpecs) {
+          const spec = dispatchData.recentSpecs[hoveredDispatch];
+          if (spec) showDispatchPopup(spec);
+        }
+        return;
+      }
+      if (currentView === 'agents') {
+        if (hoveredAgent >= 0 && agentsData) {
+          const agent = agentsData.agents[hoveredAgent];
+          if (agent) { showAgentPopup(agent); playSound('open'); }
+        }
+        return;
+      }
       if (hoveredMachine >= 0 && tasksData) {
         const task = tasksData.tasks[hoveredMachine];
         if (task) { showMachinePopup(task); playSound('open'); }
@@ -1804,6 +2701,24 @@
       return data;
     }
 
+    // Stable timestamps for client-generated alerts — reuse existing
+    // timestamp if the alert was already active, so we don't trigger
+    // false "new alert" detections every poll cycle.
+    const _clientAlertFirstSeen = {};
+
+    function _stableTimestamp(alertId) {
+      if (!_clientAlertFirstSeen[alertId]) {
+        _clientAlertFirstSeen[alertId] = new Date().toISOString();
+      }
+      return _clientAlertFirstSeen[alertId];
+    }
+
+    function _clearStaleClientTimestamps(currentIds) {
+      for (const key of Object.keys(_clientAlertFirstSeen)) {
+        if (!currentIds.has(key)) delete _clientAlertFirstSeen[key];
+      }
+    }
+
     function generateClientAlerts() {
       const alerts = [];
 
@@ -1811,27 +2726,29 @@
       if (tasksData) {
         tasksData.tasks.forEach(task => {
           if (task.lastResult === 'error') {
+            const id = `client-err-${task.id}`;
             alerts.push({
-              id: `client-err-${task.id}`,
+              id,
               category: 'critical',
               source: task.id,
               title: `${task.name} Failed`,
               message: `Last run resulted in error`,
               linkedEntity: task.id,
               ttl: 60,
-              timestamp: new Date().toISOString(),
+              timestamp: _stableTimestamp(id),
             });
           }
           if (task.metrics && task.metrics.successRate < 0.8) {
+            const id = `client-warn-rate-${task.id}`;
             alerts.push({
-              id: `client-warn-rate-${task.id}`,
+              id,
               category: 'warning',
               source: task.id,
               title: `${task.name} Degraded`,
               message: `Success rate: ${(task.metrics.successRate * 100).toFixed(0)}%`,
               linkedEntity: task.id,
               ttl: 30,
-              timestamp: new Date().toISOString(),
+              timestamp: _stableTimestamp(id),
             });
           }
         });
@@ -1841,25 +2758,27 @@
       if (servicesData) {
         servicesData.services.forEach(svc => {
           if (svc.status === 'error') {
+            const id = `client-svc-${svc.id}`;
             alerts.push({
-              id: `client-svc-${svc.id}`,
+              id,
               category: 'critical',
               source: svc.id,
               title: `${svc.name} Disconnected`,
               message: `Service unreachable`,
               ttl: 60,
-              timestamp: new Date().toISOString(),
+              timestamp: _stableTimestamp(id),
             });
           }
           if (svc.status === 'pending') {
+            const id = `client-svc-pend-${svc.id}`;
             alerts.push({
-              id: `client-svc-pend-${svc.id}`,
+              id,
               category: 'info',
               source: svc.id,
               title: `${svc.name} Pending`,
               message: `Not yet connected`,
               ttl: 8,
-              timestamp: new Date().toISOString(),
+              timestamp: _stableTimestamp(id),
             });
           }
         });
@@ -1869,27 +2788,32 @@
       if (metricsData) {
         const pct = metricsData.daily.tokensUsed / 200000;
         if (pct > 0.9) {
+          const id = 'client-tokens-crit';
           alerts.push({
-            id: 'client-tokens-crit',
+            id,
             category: 'critical',
             source: 'system',
             title: 'Token Budget Critical',
             message: `${(pct * 100).toFixed(0)}% of daily limit used`,
             ttl: 60,
-            timestamp: new Date().toISOString(),
+            timestamp: _stableTimestamp(id),
           });
         } else if (pct > 0.8) {
+          const id = 'client-tokens-warn';
           alerts.push({
-            id: 'client-tokens-warn',
+            id,
             category: 'warning',
             source: 'system',
             title: 'Token Budget Warning',
             message: `${(pct * 100).toFixed(0)}% of daily limit used`,
             ttl: 30,
-            timestamp: new Date().toISOString(),
+            timestamp: _stableTimestamp(id),
           });
         }
       }
+
+      // Clean up timestamps for alerts that no longer exist
+      _clearStaleClientTimestamps(new Set(alerts.map(a => a.id)));
 
       return alerts;
     }
@@ -1942,9 +2866,22 @@
 
     function renderAlertToasts() {
       const stack = document.getElementById('alertStack');
-      stack.innerHTML = '';
+      const visible = activeAlerts.slice(0, 5);
+      const visibleIds = new Set(visible.map(a => a.id));
 
-      activeAlerts.slice(0, 5).forEach(alert => {
+      // Remove toasts that are no longer active
+      stack.querySelectorAll('.alert-toast').forEach(el => {
+        if (!visibleIds.has(el.dataset.alertId)) el.remove();
+      });
+
+      // Add or update toasts
+      const existingIds = new Set(
+        Array.from(stack.querySelectorAll('.alert-toast')).map(el => el.dataset.alertId)
+      );
+
+      visible.forEach(alert => {
+        if (existingIds.has(alert.id)) return; // Already showing — skip
+
         const toast = document.createElement('div');
         toast.className = `alert-toast ${alert.category}`;
         toast.dataset.alertId = alert.id;
@@ -1983,6 +2920,15 @@
         toast.appendChild(dismiss);
 
         stack.appendChild(toast);
+
+        // Auto-dismiss non-critical toasts after a delay
+        const autoDismissMs = alert.category === 'info' ? 15000
+          : alert.category === 'warning' ? 30000
+          : alert.category === 'success' ? 10000
+          : 0;  // critical stays until manually dismissed
+        if (autoDismissMs > 0) {
+          setTimeout(() => dismissAlert(alert.id), autoDismissMs);
+        }
       });
     }
 
@@ -2076,13 +3022,17 @@
     let lastAlertSoundTime = 0;
 
     async function refreshData() {
-      const [t, a, s, m, alts] = await Promise.all([
+      const [t, a, s, m, alts, ag, dsp] = await Promise.all([
         loadJSON('tasks.json'),
         loadJSON('activity.json'),
         loadJSON('services.json'),
         loadJSON('metrics.json'),
-        loadAlerts()
+        loadAlerts(),
+        loadJSON('agents.json'),
+        loadJSON('dispatch.json')
       ]);
+      if (ag) agentsData = ag;
+      if (dsp) dispatchData = dsp;
       if (t) { tasksData = t; renderSchedule(); }
       if (a) {
         // Sound alert for new activity
@@ -2097,29 +3047,33 @@
         renderTicker();
       }
       if (s) { servicesData = s; renderServices(); updateHealth(); }
-      if (m) { metricsData = m; renderStats(); renderSparkline(); renderCosts(); updateUptime(); }
+      if (m) { metricsData = m; renderStats(); renderSparkline(); renderCosts(); updateUptime(); renderResources(); }
 
       // Process alerts
       const serverAlerts = alts?.alerts || [];
       const clientAlerts = generateClientAlerts();
       const merged = mergeAlerts(serverAlerts, clientAlerts);
 
-      // Detect new alerts and play sounds (debounce to avoid spam)
+      // Detect new alerts and play sounds (debounce 30 s to avoid spam)
       const now = Date.now();
       const newAlerts = merged.filter(a => !activeAlerts.find(aa => aa.id === a.id));
-      if (newAlerts.length > 0 && now - lastAlertSoundTime > 500) {
-        newAlerts.forEach(alert => {
-          if (alert.category === 'critical') playSound('alertCritical');
-          else if (alert.category === 'warning') playSound('alertWarning');
-          else if (alert.category === 'success') playSound('alertSuccess');
-          else playSound('alertInfo');
-        });
+      if (newAlerts.length > 0 && now - lastAlertSoundTime > 30000) {
+        // Only play the single highest-severity sound, not one per alert
+        const worst = newAlerts.find(a => a.category === 'critical')
+          || newAlerts.find(a => a.category === 'warning')
+          || newAlerts.find(a => a.category === 'success')
+          || newAlerts[0];
+        if (worst.category === 'critical') playSound('alertCritical');
+        else if (worst.category === 'warning') playSound('alertWarning');
+        else if (worst.category === 'success') playSound('alertSuccess');
+        else playSound('alertInfo');
         lastAlertSoundTime = now;
       }
 
       activeAlerts = merged;
       renderAlertToasts();
       updateAlertBadge();
+      updateMinimap();
     }
 
     // ============================================================
@@ -2205,6 +3159,31 @@
       document.getElementById('uptime').textContent = `UPTIME: ${metricsData.uptimeDays}d`;
     }
 
+    function renderResources() {
+      if (!metricsData) return;
+      const d = metricsData.daily;
+
+      // Token bar
+      const used = d.tokensUsed || 0;
+      const budget = d.tokenBudget || 200000;
+      const pct = Math.min(100, (used / budget) * 100);
+      const bar = document.getElementById('tokenBar');
+      bar.style.width = pct + '%';
+      bar.className = 'resource-bar-fill ' + (pct >= 90 ? 'red' : pct >= 75 ? 'yellow' : 'green');
+      document.getElementById('tokenValue').textContent =
+        (used / 1000).toFixed(0) + 'K / ' + (budget / 1000).toFixed(0) + 'K' +
+        (metricsData.tokenEstimates ? ' (est)' : '');
+
+      // API calls bar
+      const calls = d.apiCalls || 0;
+      const callBudget = d.apiCallBudget || 100;
+      const apiPct = Math.min(100, (calls / callBudget) * 100);
+      const apiBar = document.getElementById('apiBar');
+      apiBar.style.width = apiPct + '%';
+      apiBar.className = 'resource-bar-fill ' + (apiPct >= 90 ? 'red' : apiPct >= 75 ? 'yellow' : 'green');
+      document.getElementById('apiValue').textContent = calls + ' / ' + callBudget;
+    }
+
     // ============================================================
     //  MACHINE POPUP + AUTO-STOP + OUTPUT VIEWER
     // ============================================================
@@ -2230,8 +3209,12 @@
       ];
       body.innerHTML = rows.map(([k, v]) => `<div class="popup-row"><span class="popup-key">${k}</span><span class="popup-val">${v}</span></div>`).join('');
 
+      // Reset agent popup state
+      currentPopupAgent = null;
+
       // Toggle button
       const toggleBtn = document.getElementById('popupToggle');
+      toggleBtn.style.display = ''; // restore visibility
       const isRunning = task.status === 'running';
       toggleBtn.textContent = isRunning ? '[ STOP ]' : '[ RUN ]';
       toggleBtn.classList.toggle('stopping', isRunning);
@@ -2268,12 +3251,24 @@
     }
 
     function toggleOutputPanel() {
-      if (!currentPopupTask || !currentPopupTask.lastOutput) return;
       outputPanelOpen = !outputPanelOpen;
       const panel = document.getElementById('popupOutputPanel');
       panel.classList.toggle('visible', outputPanelOpen);
 
       if (outputPanelOpen) {
+        // Agent history mode
+        if (currentPopupAgent && currentPopupAgent.recentActions) {
+          document.getElementById('popupOutputTitle').textContent = 'Recent Actions';
+          document.getElementById('popupOutputContent').textContent = currentPopupAgent.recentActions
+            .map(a => `[${timeAgo(a.timestamp)}] ${a.action} (${a.status})`)
+            .join('\n');
+          document.getElementById('popupOutputMeta').textContent = '';
+          playSound('click');
+          return;
+        }
+
+        // Task output mode
+        if (!currentPopupTask || !currentPopupTask.lastOutput) return;
         const out = currentPopupTask.lastOutput;
         document.getElementById('popupOutputTitle').textContent = out.title || 'Output';
         document.getElementById('popupOutputContent').textContent = out.content || 'No output data.';
@@ -2422,6 +3417,298 @@
     }
 
     // ============================================================
+    //  SYSTEM MINIMAP
+    // ============================================================
+    let minimapVisible = true;
+    const mmCanvas = document.getElementById('minimapCanvas');
+    const mmCtx = mmCanvas.getContext('2d');
+    mmCtx.imageSmoothingEnabled = false;
+
+    function toggleMinimap() {
+      minimapVisible = !minimapVisible;
+      document.getElementById('minimapContainer').classList.toggle('hidden', !minimapVisible);
+      playSound('click');
+    }
+
+    document.getElementById('minimapCloseBtn').addEventListener('click', toggleMinimap);
+
+    // Minimap click → navigate to machine popup
+    mmCanvas.addEventListener('click', (e) => {
+      if (!tasksData) return;
+      const rect = mmCanvas.getBoundingClientRect();
+      const scaleX = mmCanvas.width / rect.width;
+      const scaleY = mmCanvas.height / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+
+      // Check if click is on a machine dot
+      const tasks = tasksData.tasks;
+      const mmW = mmCanvas.width;
+      const mmH = mmCanvas.height;
+      const padding = 20;
+      const cols = Math.ceil(Math.sqrt(tasks.length));
+      const rows = Math.ceil(tasks.length / cols);
+      const cellW = (mmW - padding * 2) / Math.max(cols, 1);
+      const cellH = (mmH - padding * 2) / Math.max(rows, 1);
+      const dotRadius = Math.min(cellW, cellH) * 0.25;
+
+      for (let i = 0; i < tasks.length; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const cx = padding + col * cellW + cellW / 2;
+        const cy = padding + row * cellH + cellH / 2;
+        const dist = Math.sqrt((mx - cx) ** 2 + (my - cy) ** 2);
+        if (dist <= dotRadius + 8) {
+          // Jump to factory view and open machine popup
+          if (currentView !== 'factory') switchView('factory');
+          showMachinePopup(tasks[i]);
+          playSound('open');
+          return;
+        }
+      }
+    });
+
+    function renderMinimap() {
+      const w = mmCanvas.width;
+      const h = mmCanvas.height;
+
+      // Background
+      mmCtx.fillStyle = C.bgDeep;
+      mmCtx.fillRect(0, 0, w, h);
+
+      // Grid lines (subtle)
+      mmCtx.strokeStyle = 'rgba(42, 42, 90, 0.2)';
+      mmCtx.lineWidth = 1;
+      for (let gx = 0; gx < w; gx += 20) {
+        mmCtx.beginPath(); mmCtx.moveTo(gx, 0); mmCtx.lineTo(gx, h); mmCtx.stroke();
+      }
+      for (let gy = 0; gy < h; gy += 20) {
+        mmCtx.beginPath(); mmCtx.moveTo(0, gy); mmCtx.lineTo(w, gy); mmCtx.stroke();
+      }
+
+      if (!tasksData) {
+        mmCtx.fillStyle = C.dim;
+        mmCtx.font = '8px "Press Start 2P"';
+        mmCtx.textAlign = 'center';
+        mmCtx.fillText('...', w / 2, h / 2);
+        return;
+      }
+
+      const tasks = tasksData.tasks;
+      const padding = 20;
+      const cols = Math.ceil(Math.sqrt(tasks.length));
+      const rows = Math.ceil(tasks.length / cols);
+      const cellW = (w - padding * 2) / Math.max(cols, 1);
+      const cellH = (h - padding * 2) / Math.max(rows, 1);
+      const dotRadius = Math.min(cellW, cellH) * 0.25;
+
+      // Draw connecting lines between machines (belt representation)
+      mmCtx.strokeStyle = C.beltGray;
+      mmCtx.lineWidth = 2;
+      BELT_CONFIGS.forEach(bc => {
+        if (bc.from >= tasks.length || bc.to >= tasks.length) return;
+        const fromCol = bc.from % cols, fromRow = Math.floor(bc.from / cols);
+        const toCol = bc.to % cols, toRow = Math.floor(bc.to / cols);
+        const x1 = padding + fromCol * cellW + cellW / 2;
+        const y1 = padding + fromRow * cellH + cellH / 2;
+        const x2 = padding + toCol * cellW + cellW / 2;
+        const y2 = padding + toRow * cellH + cellH / 2;
+        mmCtx.beginPath();
+        mmCtx.moveTo(x1, y1);
+        mmCtx.lineTo(x2, y2);
+        mmCtx.stroke();
+
+        // Animated belt dashes
+        const ft = tasks[bc.from];
+        const tt = tasks[bc.to];
+        const active = (ft && ft.lastResult === 'success') || (tt && tt.lastResult === 'success');
+        if (active) {
+          mmCtx.strokeStyle = C.green;
+          mmCtx.lineWidth = 1;
+          mmCtx.setLineDash([3, 5]);
+          mmCtx.lineDashOffset = -beltOffset * 0.5;
+          mmCtx.beginPath();
+          mmCtx.moveTo(x1, y1);
+          mmCtx.lineTo(x2, y2);
+          mmCtx.stroke();
+          mmCtx.setLineDash([]);
+          mmCtx.strokeStyle = C.beltGray;
+          mmCtx.lineWidth = 2;
+        }
+      });
+
+      // Count stats
+      let running = 0, ok = 0, errors = 0, idle = 0;
+
+      // Draw machines as pixel-art blocks
+      tasks.forEach((task, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const cx = padding + col * cellW + cellW / 2;
+        const cy = padding + row * cellH + cellH / 2;
+
+        const isRunning = task.status === 'running';
+        const isError = task.lastResult === 'error';
+        const isOk = task.lastResult === 'success' && !isRunning;
+
+        if (isRunning) running++;
+        else if (isError) errors++;
+        else if (isOk) ok++;
+        else idle++;
+
+        const color = isRunning ? C.orange : isError ? C.red : isOk ? C.green : C.dim;
+
+        // Machine block (pixel art style — draw as small rectangle)
+        const blockW = dotRadius * 1.6;
+        const blockH = dotRadius * 1.2;
+        mmCtx.fillStyle = C.bgPanel;
+        mmCtx.fillRect(cx - blockW, cy - blockH, blockW * 2, blockH * 2);
+
+        // Border with status color
+        mmCtx.strokeStyle = color;
+        mmCtx.lineWidth = isRunning ? 2 : 1;
+        mmCtx.strokeRect(cx - blockW, cy - blockH, blockW * 2, blockH * 2);
+
+        // Glow for running/error
+        if (isRunning || isError) {
+          mmCtx.shadowColor = color;
+          mmCtx.shadowBlur = 6;
+          mmCtx.strokeRect(cx - blockW, cy - blockH, blockW * 2, blockH * 2);
+          mmCtx.shadowBlur = 0;
+        }
+
+        // Pulsing center dot for running machines
+        if (isRunning) {
+          const pulse = Math.sin(animTime * 4) * 0.3 + 0.7;
+          mmCtx.fillStyle = color;
+          mmCtx.globalAlpha = pulse;
+          mmCtx.beginPath();
+          mmCtx.arc(cx, cy, dotRadius * 0.4, 0, Math.PI * 2);
+          mmCtx.fill();
+          mmCtx.globalAlpha = 1;
+        }
+
+        // Error blink
+        if (isError && Math.sin(animTime * 4) > 0) {
+          mmCtx.fillStyle = C.red;
+          // Tiny "!" marker
+          mmCtx.font = '6px "Press Start 2P"';
+          mmCtx.textAlign = 'center';
+          mmCtx.textBaseline = 'middle';
+          mmCtx.fillText('!', cx, cy - blockH - 4);
+        }
+
+        // Gear animation for running
+        if (isRunning) {
+          const gearSize = dotRadius * 0.3;
+          mmCtx.fillStyle = C.orange;
+          mmCtx.save();
+          mmCtx.translate(cx, cy);
+          mmCtx.rotate(animTime * 2);
+          mmCtx.fillRect(-gearSize, -1, gearSize * 2, 2);
+          mmCtx.fillRect(-1, -gearSize, 2, gearSize * 2);
+          mmCtx.restore();
+        }
+
+        // Machine name (tiny)
+        mmCtx.fillStyle = C.textSec;
+        mmCtx.font = '5px "Press Start 2P"';
+        mmCtx.textAlign = 'center';
+        mmCtx.textBaseline = 'top';
+        mmCtx.fillText(task.name.substring(0, 6), cx, cy + blockH + 2);
+      });
+
+      // Draw service nodes along the edges (if servicesData available)
+      if (servicesData) {
+        const svcCount = servicesData.services.length;
+        servicesData.services.forEach((svc, i) => {
+          const sx = 8;
+          const sy = padding + ((h - padding * 2) / Math.max(svcCount - 1, 1)) * i;
+
+          const svcColor = svc.status === 'active' ? C.green
+            : svc.status === 'error' ? C.red : C.dim;
+
+          // Small service indicator
+          mmCtx.fillStyle = svcColor;
+          mmCtx.beginPath();
+          mmCtx.arc(sx, sy, 3, 0, Math.PI * 2);
+          mmCtx.fill();
+
+          // Service pulse for active
+          if (svc.status === 'active') {
+            mmCtx.strokeStyle = svcColor;
+            mmCtx.lineWidth = 0.5;
+            mmCtx.globalAlpha = 0.3;
+            mmCtx.beginPath();
+            mmCtx.arc(sx, sy, 5, 0, Math.PI * 2);
+            mmCtx.stroke();
+            mmCtx.globalAlpha = 1;
+          }
+
+          // Dashed connector from service to nearest machine
+          if (tasks.length > 0) {
+            const nearestIdx = Math.min(i, tasks.length - 1);
+            const nearCol = nearestIdx % cols;
+            const nearRow = Math.floor(nearestIdx / cols);
+            const tx = padding + nearCol * cellW + cellW / 2;
+            const ty = padding + nearRow * cellH + cellH / 2;
+
+            mmCtx.strokeStyle = svcColor;
+            mmCtx.globalAlpha = 0.2;
+            mmCtx.lineWidth = 0.5;
+            mmCtx.setLineDash([2, 3]);
+            mmCtx.beginPath();
+            mmCtx.moveTo(sx + 4, sy);
+            mmCtx.lineTo(tx - dotRadius * 1.6, ty);
+            mmCtx.stroke();
+            mmCtx.setLineDash([]);
+            mmCtx.globalAlpha = 1;
+          }
+        });
+      }
+
+      // Draw active alert indicators
+      if (activeAlerts.length > 0) {
+        const critCount = activeAlerts.filter(a => a.category === 'critical').length;
+        if (critCount > 0) {
+          // Red flash corner
+          const flashAlpha = Math.sin(animTime * 3) * 0.15 + 0.15;
+          mmCtx.fillStyle = C.red;
+          mmCtx.globalAlpha = flashAlpha;
+          mmCtx.fillRect(0, 0, w, 3);
+          mmCtx.fillRect(0, h - 3, w, 3);
+          mmCtx.globalAlpha = 1;
+        }
+
+        // Alert count badge
+        mmCtx.fillStyle = C.red;
+        mmCtx.fillRect(w - 24, 4, 20, 10);
+        mmCtx.fillStyle = C.bgDeep;
+        mmCtx.font = '6px "Press Start 2P"';
+        mmCtx.textAlign = 'center';
+        mmCtx.textBaseline = 'middle';
+        mmCtx.fillText(String(activeAlerts.length), w - 14, 9);
+      }
+
+      // Update stats bar
+      document.getElementById('mmRunning').textContent = running;
+      document.getElementById('mmOk').textContent = ok;
+      document.getElementById('mmError').textContent = errors;
+      document.getElementById('mmIdle').textContent = idle;
+
+      // Update minimap frame alert state
+      const frame = document.getElementById('minimapFrame');
+      const hasCritical = activeAlerts.some(a => a.category === 'critical');
+      frame.classList.toggle('alert-active', hasCritical);
+    }
+
+    // Render minimap every frame alongside the main canvas
+    function updateMinimap() {
+      if (!minimapVisible) return;
+      renderMinimap();
+    }
+
+    // ============================================================
     //  KEYBOARD SHORTCUTS
     // ============================================================
     document.addEventListener('keydown', (e) => {
@@ -2435,10 +3722,14 @@
             closeAlertDrawer();
           }
           break;
+        case '1': switchView('factory'); break;
+        case '2': switchView('agents'); break;
+        case '3': switchView('dispatch'); break;
         case 't': cycleTheme(); break;
         case 'm': toggleSound(); break;
         case 'a': toggleAltMode(); break;
         case 'n': toggleAlertDrawer(); break;
+        case 'p': toggleMinimap(); break;
       }
     });
 
@@ -2446,9 +3737,9 @@
     //  INIT
     // ============================================================
     computeLayout();
-    refreshData();
+    refreshData().then(() => updateMinimap());
     requestAnimationFrame(renderFrame);
-    setInterval(refreshData, 30000);
+    setInterval(refreshData, 30000);  // poll every 30 s — avoids alert spam
 
     // Play boot sound after first user interaction (Chrome autoplay policy)
     document.addEventListener('click', function bootOnce() {

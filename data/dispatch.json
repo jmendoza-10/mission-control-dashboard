@@ -1,0 +1,73 @@
+{
+  "pipeline": {
+    "queued": 1,
+    "processing": 0,
+    "completed": 5,
+    "failed": 1
+  },
+  "recentSpecs": [
+    {
+      "id": "code-patch-20260325-185041",
+      "task": "code-patch",
+      "description": "Add dispatch pipeline visualization panel to mission-control.html",
+      "status": "queued",
+      "requestedAt": "2026-03-25T18:50:41Z",
+      "completedAt": null,
+      "elapsedSec": null,
+      "spec": "Target: mission-control.html\nTask: Add a new DISPATCH view (3rd canvas view alongside Factory and Agents)\nPipeline status, recent activity, routing stats, spec viewer popup",
+      "result": null
+    },
+    {
+      "id": "code-patch-20260325-183446",
+      "task": "code-patch",
+      "description": "Fix the token bar threshold to yellow at 60%",
+      "status": "failed",
+      "requestedAt": "2026-03-25T18:34:46Z",
+      "completedAt": "2026-03-25T18:36:00Z",
+      "elapsedSec": 74,
+      "spec": "Target: mission-control.html\nLocation: renderResources() function\nChange: Yellow threshold from 75% to 60%, red from 90% to 85%\nConstraint: Only modify renderResources, nothing else",
+      "result": "Queue watcher not yet activated — spec stuck in processing"
+    },
+    {
+      "id": "code-patch-20260325-180214",
+      "task": "code-patch",
+      "description": "Fix factory floor idle flicker — double-buffer canvas, worker wander, lastTime init",
+      "status": "completed",
+      "requestedAt": "2026-03-25T18:02:14Z",
+      "completedAt": "2026-03-25T18:04:20Z",
+      "elapsedSec": 126,
+      "spec": "Target: mission-control.html\nFix: Double-buffer canvas to eliminate flicker, fix worker wander bounds, initialize lastTime properly",
+      "result": "Applied 3 patches: offscreen canvas buffer, wander boundary clamp, lastTime = -1 sentinel"
+    },
+    {
+      "id": "workspace-review-20260325-170000",
+      "task": "workspace-review",
+      "description": "Scan workspace for open threads and stale items",
+      "status": "completed",
+      "requestedAt": "2026-03-25T17:00:00Z",
+      "completedAt": "2026-03-25T17:09:55Z",
+      "elapsedSec": 595,
+      "spec": "Standard workspace-review task — scan memory/daily/, check for open threads, suggest next steps",
+      "result": "Found 7 open threads, 2 stale items. Recommended: close DocuSign thread, prioritize Tesla application"
+    },
+    {
+      "id": "code-review-20260325-060000",
+      "task": "code-review",
+      "description": "Review mission-control.html for quality and security",
+      "status": "completed",
+      "requestedAt": "2026-03-25T06:00:00Z",
+      "completedAt": "2026-03-25T06:08:30Z",
+      "elapsedSec": 510,
+      "spec": "Standard code-review: check mission-control.html for bugs, security issues, style consistency",
+      "result": "No critical issues. Suggested: add input sanitization for ticker content, reduce poll interval"
+    }
+  ],
+  "routingStats": {
+    "date": "2026-03-25",
+    "vulcanTasks": 6,
+    "janusTasks": 4,
+    "totalRouted": 10,
+    "tokensSaved": 45000
+  },
+  "lastUpdated": "2026-03-25T18:50:41Z"
+}

@@ -80,6 +80,42 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ── PATCH /data/agents.json — update a single agent's fields ──
+  if (req.method === 'PATCH' && req.url === '/data/agents.json') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const patch = JSON.parse(body);
+        if (!patch.id) throw new Error('Missing agent id');
+
+        const filePath = path.join(ROOT, 'data', 'agents.json');
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+        const agent = data.agents.find(a => a.id === patch.id);
+        if (!agent) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Agent not found' }));
+        }
+
+        const ALLOWED = ['status', 'currentTask', 'metrics', 'recentActions'];
+        ALLOWED.forEach(key => {
+          if (patch[key] !== undefined) agent[key] = patch[key];
+        });
+        data.lastUpdated = new Date().toISOString();
+
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, agent }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
   // ── Static file serving ──
   let filePath = path.join(ROOT, req.url.split('?')[0]);
   if (filePath.endsWith('/')) filePath = path.join(filePath, 'index.html');

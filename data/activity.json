@@ -1,6 +1,118 @@
 {
-  "lastUpdated": "2026-03-24T18:11:52.756629+00:00",
+  "lastUpdated": "2026-03-25T18:13:51.900515Z",
   "events": [
+    {
+      "timestamp": "2026-03-25T18:13:51.900508Z",
+      "type": "system",
+      "source": "cowork-session",
+      "message": "Token usage +15000 estimated (cowork-session)",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T18:04:20.387509Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Canvas idle flicker fixed: double-buffering, worker wander threshold, lastTime init. Patched mission-control.html.",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-25T18:04:20.369783Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Queue item 'Fix factory floor idle flicker \u2014 double-buffer canvas, fix worker wander, fix lastTime init' \u2192 completed",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T18:04:20.347979Z",
+      "type": "task",
+      "source": "janus",
+      "message": "Janus completed: Orchestrating idle flicker fix \u2014 dispatching Vulcan for canvas patch",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-25T18:04:20.324771Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Vulcan completed: Patching factory floor canvas: double-buffer, wander fix, lastTime init",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-25T18:02:14.092890Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Vulcan started: Patching factory floor canvas: double-buffer, wander fix, lastTime init",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T18:02:14.073639Z",
+      "type": "task",
+      "source": "janus",
+      "message": "Janus started: Orchestrating idle flicker fix \u2014 dispatching Vulcan for canvas patch",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T17:59:42.394915Z",
+      "type": "task",
+      "source": "janus",
+      "message": "Triaged factory floor idle flicker \u2014 root cause: no double-buffering, erratic worker wander threshold, bad lastTime init. Spec written, queued for Vulcan.",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T17:59:37.792220Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "New task queued: Fix factory floor idle flicker \u2014 double-buffer canvas, fix worker wander, fix lastTime init (medium priority)",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T17:40:49.724611Z",
+      "type": "task",
+      "source": "system",
+      "message": "Mission control skill updated: added collaborative Janus+Vulcan workflow for coding/bug-fix tasks",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-25T17:36:05.987637Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Fixed alert system: stable timestamps + diff-aware toast rendering to prevent 3s spam loop",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-25T17:31:40.449456Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Vulcan completed: Research API rate limiting patterns",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-25T17:30:30.261695Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Vulcan started: Research API rate limiting patterns",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T17:30:26.574747Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "New task queued: Research API rate limiting patterns (medium priority)",
+      "status": "info"
+    },
+    {
+      "timestamp": "2026-03-25T17:23:39.461609Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Vulcan completed: Health dashboard integration spec",
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-25T17:23:31.550192Z",
+      "type": "task",
+      "source": "vulcan",
+      "message": "Vulcan started: Health dashboard integration spec",
+      "status": "info"
+    },
     {
       "timestamp": "2026-03-24T18:11:52.756596+00:00",
       "type": "manual",
