@@ -2688,6 +2688,19 @@
     }
 
     // ============================================================
+    //  LIVE DISPATCH LOADER
+    // ============================================================
+    async function loadDispatch() {
+      // Try live API endpoint first (reads real dispatch directories)
+      try {
+        const res = await fetch('/api/dispatch?t=' + Date.now());
+        if (res.ok) return await res.json();
+      } catch (e) { /* API not available — fall back to static file */ }
+      // Fallback: static dispatch.json (for file:// or non-server usage)
+      return loadJSON('dispatch.json');
+    }
+
+    // ============================================================
     //  ALERT SYSTEM
     // ============================================================
     let activeAlerts = [];
@@ -3029,7 +3042,7 @@
         loadJSON('metrics.json'),
         loadAlerts(),
         loadJSON('agents.json'),
-        loadJSON('dispatch.json')
+        loadDispatch()
       ]);
       if (ag) agentsData = ag;
       if (dsp) dispatchData = dsp;
@@ -3739,7 +3752,7 @@
     computeLayout();
     refreshData().then(() => updateMinimap());
     requestAnimationFrame(renderFrame);
-    setInterval(refreshData, 30000);  // poll every 30 s — avoids alert spam
+    setInterval(refreshData, 5000);  // poll every 5s — alert debounce handles spam
 
     // Play boot sound after first user interaction (Chrome autoplay policy)
     document.addEventListener('click', function bootOnce() {
