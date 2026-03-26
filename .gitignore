@@ -3,3 +3,14 @@
 *.swo
 *~
 __pycache__/
+data
+.claude/
+
+# Machine-specific config (contains hardcoded paths)
+*.plist
+
+# Secrets / credentials
+.env
+.env.*
+*.key
+*.pem
