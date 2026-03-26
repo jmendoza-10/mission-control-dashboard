@@ -1534,6 +1534,7 @@
     let machineHitBoxes = [];
     let hoveredMachine = -1;
     let machinePositions = [];
+    let mouseCanvasX = 0, mouseCanvasY = 0;
 
     // Idle worker state
     let worker = { x: 0, y: 0, targetX: 0, targetY: 0, frame: 0, timer: 0, moveTimer: 0, wanderInterval: 3 + Math.random() * 2, visible: true };
@@ -1711,6 +1712,59 @@
       ctx.fillText(statusText, x + MACHINE_W / 2, y + MACHINE_H - 4, MACHINE_W - 4);
 
       machineHitBoxes[index] = { x, y, w: MACHINE_W, h: MACHINE_H, taskIndex: index };
+    }
+
+    function drawMachineTooltip() {
+      if (hoveredMachine < 0 || !tasksData) return;
+      const task = tasksData.tasks[hoveredMachine];
+      if (!task) return;
+
+      const label = task.lastRun ? 'Last run: ' + timeAgo(task.lastRun) : 'Last run: Never';
+      ctx.font = '7px "Press Start 2P"';
+      const textW = ctx.measureText(label).width;
+      const padX = 8, padY = 6;
+      const tipW = textW + padX * 2;
+      const tipH = 12 + padY * 2;
+
+      // Position: above the machine, centered
+      const hb = machineHitBoxes[hoveredMachine];
+      if (!hb) return;
+      let tx = hb.x + (hb.w - tipW) / 2;
+      let ty = hb.y - tipH - 6;
+
+      // Keep within canvas bounds
+      const cw = canvas.width / (window.devicePixelRatio || 1);
+      const ch = canvas.height / (window.devicePixelRatio || 1);
+      if (tx < 4) tx = 4;
+      if (tx + tipW > cw - 4) tx = cw - tipW - 4;
+      if (ty < 4) ty = hb.y + hb.h + 6; // flip below if no room above
+
+      // Background with pixel border
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(tx, ty, tipW, tipH);
+      ctx.strokeStyle = C.green;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(tx, ty, tipW, tipH);
+
+      // Inner highlight line (retro inset look)
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(tx + 1, ty + 1, tipW - 2, tipH - 2);
+
+      // Small arrow pointing down toward machine
+      if (ty < hb.y) {
+        const arrowX = hb.x + hb.w / 2;
+        ctx.fillStyle = C.green;
+        ctx.fillRect(arrowX - 2, ty + tipH, 5, 2);
+        ctx.fillRect(arrowX - 1, ty + tipH + 2, 3, 1);
+        ctx.fillRect(arrowX, ty + tipH + 3, 1, 1);
+      }
+
+      // Text
+      ctx.fillStyle = C.green;
+      ctx.font = '7px "Press Start 2P"';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, tx + padX, ty + padY + 9);
+      ctx.textAlign = 'center'; // restore default
     }
 
     function drawServiceNode(name, x, y) {
@@ -2579,6 +2633,9 @@
         }
       });
 
+      // Hover tooltip (drawn last so it's on top of everything)
+      drawMachineTooltip();
+
       // Blit offscreen buffer to visible canvas (eliminates flicker)
       displayCtx.clearRect(0, 0, canvas.width, canvas.height);
       displayCtx.drawImage(offCanvas, 0, 0);
@@ -2597,6 +2654,8 @@
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      mouseCanvasX = mx;
+      mouseCanvasY = my;
 
       if (currentView === 'dispatch') {
         hoveredDispatch = -1;
@@ -2782,18 +2841,7 @@
               timestamp: _stableTimestamp(id),
             });
           }
-          if (svc.status === 'pending') {
-            const id = `client-svc-pend-${svc.id}`;
-            alerts.push({
-              id,
-              category: 'info',
-              source: svc.id,
-              title: `${svc.name} Pending`,
-              message: `Not yet connected`,
-              ttl: 8,
-              timestamp: _stableTimestamp(id),
-            });
-          }
+          // Pending services shown on services panel — suppressed here to avoid toast spam
         });
       }
 

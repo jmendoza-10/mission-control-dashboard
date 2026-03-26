@@ -113,6 +113,26 @@ class MissionControlHandler(SimpleHTTPRequestHandler):
             self._serve_live_dispatch()
             return
 
+        # Serve data/*.json from DATA_DIR (which may live outside ROOT)
+        if clean_path.startswith("/data/") and clean_path.endswith(".json"):
+            filename = os.path.basename(clean_path)
+            filepath = os.path.join(DATA_DIR, filename)
+            if os.path.isfile(filepath):
+                try:
+                    with open(filepath, "r") as f:
+                        content = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Cache-Control", "no-cache")
+                    self._cors_headers()
+                    self.end_headers()
+                    self.wfile.write(content.encode())
+                except IOError:
+                    self.send_error(500, f"Failed to read {filename}")
+            else:
+                self.send_error(404, f"Data file not found: {filename}")
+            return
+
         # Default: static file serving
         super().do_GET()
 
