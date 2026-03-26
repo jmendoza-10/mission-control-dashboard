@@ -2,6 +2,8 @@
 
 8-bit retro × Factorio-style monitoring UI for autonomous AI agent systems.
 
+![Mission Control Demo](mission-control-demo.gif)
+
 ## Overview
 
 A single-file HTML dashboard that visualizes scheduled task activity, service health, and production metrics using NES.css styling, CRT effects, and a Factorio-inspired factory floor layout. Includes an optional Node.js server for interactive task control.
